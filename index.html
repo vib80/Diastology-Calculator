@@ -26,41 +26,6 @@
             transform: scale(1);
             opacity: 1;
         }
-        .info-icon {
-            cursor: pointer;
-            display: inline-block;
-            position: relative;
-        }
-        .tooltip {
-            visibility: hidden;
-            width: 220px;
-            background-color: #555;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 10px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -110px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #555 transparent transparent transparent;
-        }
-        .info-icon:hover .tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
         .hidden {
             display: none;
         }
@@ -76,7 +41,6 @@
 
         <main class="bg-white rounded-xl shadow-lg p-6 md:p-8">
             
-            <!-- Special Condition Selector -->
             <div class="mb-6">
                 <label for="special-condition" class="block text-lg font-medium text-gray-700 mb-2">Select Clinical Scenario</label>
                 <select id="special-condition" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-3 bg-gray-50">
@@ -101,55 +65,33 @@
                     <p class="text-sm">This algorithm should not be applied to patients with significant mitral valve disease (MR, MS), MAC, atrial fibrillation, LVADs, non-cardiac PH, heart transplants, or pericardial constriction.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Step 1: Core Parameters Input -->
                     <div class="step-card bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Step 1: Core Parameters</h2>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Step 1: Core Findings</h2>
+                        <p class="text-sm text-gray-500 mb-4">Check all abnormal findings that apply.</p>
                         <div class="space-y-4">
-                            <div>
-                                <label for="septal-e-prime" class="block text-sm font-medium text-gray-600">Septal e' (cm/s)</label>
-                                <input type="number" id="septal-e-prime" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 5">
-                            </div>
-                            <div>
-                                <label for="lateral-e-prime" class="block text-sm font-medium text-gray-600">Lateral e' (cm/s)</label>
-                                <input type="number" id="lateral-e-prime" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 8">
-                            </div>
-                            <div>
-                                <label for="mitral-e-velocity" class="block text-sm font-medium text-gray-600">Mitral E-wave Velocity (cm/s)</label>
-                                <input type="number" id="mitral-e-velocity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 90">
-                            </div>
-                             <div>
-                                <label for="mitral-a-velocity" class="block text-sm font-medium text-gray-600">Mitral A-wave Velocity (cm/s)</label>
-                                <input type="number" id="mitral-a-velocity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 70">
-                            </div>
-                            <div>
-                                <label for="tr-velocity" class="block text-sm font-medium text-gray-600">Peak TR Velocity (m/s)</label>
-                                <input type="number" id="tr-velocity" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., 3.0">
-                            </div>
+                            <div class="flex items-start"><input id="core-e-prime-reduced" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-e-prime-reduced" class="ml-3 block text-sm font-medium text-gray-700">Reduced e' velocity<span class="block text-xs text-gray-500 font-normal">septal ≤ 6, lateral ≤ 7, or avg ≤ 6.5 cm/s</span></label></div>
+                            <div class="flex items-start"><input id="core-ee-increased" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-ee-increased" class="ml-3 block text-sm font-medium text-gray-700">Increased E/e' ratio<span class="block text-xs text-gray-500 font-normal">septal ≥ 15, lateral ≥ 13, or avg ≥ 14</span></label></div>
+                            <div class="flex items-start"><input id="core-tr-increased" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-tr-increased" class="ml-3 block text-sm font-medium text-gray-700">Increased TR velocity<span class="block text-xs text-gray-500 font-normal">≥ 2.8 m/s or PASP ≥ 35 mm Hg</span></label></div>
+                        </div>
+                         <div class="mt-6 pt-4 border-t">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">E/A Ratio (for grading)</h3>
+                             <div class="space-y-3">
+                                 <div class="flex items-center"><input type="radio" id="ea-le-08" name="ea-ratio" value="le08" class="h-4 w-4 text-indigo-600"><label for="ea-le-08" class="ml-3 text-sm">E/A Ratio is ≤ 0.8</label></div>
+                                 <div class="flex items-center"><input type="radio" id="ea-gt08-lt2" name="ea-ratio" value="gt08lt2" class="h-4 w-4 text-indigo-600"><label for="ea-gt08-lt2" class="ml-3 text-sm">E/A Ratio is > 0.8 and &lt; 2</label></div>
+                                 <div class="flex items-center"><input type="radio" id="ea-ge-2" name="ea-ratio" value="ge2" class="h-4 w-4 text-indigo-600"><label for="ea-ge-2" class="ml-3 text-sm">E/A Ratio is ≥ 2</label></div>
+                                 <div class="flex items-center"><input type="radio" id="ea-unknown" name="ea-ratio" value="unknown" class="h-4 w-4 text-indigo-600" checked><label for="ea-unknown" class="ml-3 text-sm text-gray-500">E/A Ratio is not specified</label></div>
+                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: Supplemental Parameters (Conditional) -->
                     <div id="supplemental-card" class="step-card bg-gray-50 p-6 rounded-lg border border-gray-200 hidden">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Step 2: Supplemental Parameters</h2>
-                        <p class="text-sm text-gray-500 mb-4">These are needed because the core parameters are inconclusive. Please provide at least one.</p>
+                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Step 2: Supplemental Findings</h2>
+                        <p class="text-sm text-gray-500 mb-4">Core findings are inconclusive. Please check any abnormal supplemental findings that apply.</p>
                         <div class="space-y-4">
-                            <div>
-                                <label for="lars" class="block text-sm font-medium text-gray-600">LARS (%)</label>
-                                <input type="number" id="lars" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="e.g., 17">
-                            </div>
-                             <div>
-                                <label for="pulm-vein-sd" class="block text-sm font-medium text-gray-600">Pulmonary Vein S/D Ratio</label>
-                                <input type="number" id="pulm-vein-sd" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="e.g., 0.6">
-                            </div>
-                            <div>
-                                <label for="lavi" class="block text-sm font-medium text-gray-600">LAVI (mL/m²)</label>
-                                <input type="number" id="lavi" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="e.g., 38">
-                            </div>
-                            <div class="text-center text-sm text-gray-500 py-1">OR</div>
-                             <div>
-                                <label for="ivrt" class="block text-sm font-medium text-gray-600">IVRT (ms)</label>
-                                <input type="number" id="ivrt" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" placeholder="e.g., 65">
-                            </div>
+                            <div class="flex items-start"><input id="supp-sd-reduced" type="checkbox" class="h-5 w-5 mt-0.5"><label for="supp-sd-reduced" class="ml-3 text-sm font-medium text-gray-700">Pulmonary Vein S/D Ratio ≤ 0.67</label></div>
+                            <div class="flex items-start"><input id="supp-lars-reduced" type="checkbox" class="h-5 w-5 mt-0.5"><label for="supp-lars-reduced" class="ml-3 text-sm font-medium text-gray-700">LARS ≤ 18%</label></div>
+                            <div class="flex items-start"><input id="supp-lavi-increased" type="checkbox" class="h-5 w-5 mt-0.5"><label for="supp-lavi-increased" class="ml-3 text-sm font-medium text-gray-700">LAVi > 34 mL/m²</label></div>
+                            <div class="flex items-start"><input id="supp-ivrt-reduced" type="checkbox" class="h-5 w-5 mt-0.5"><label for="supp-ivrt-reduced" class="ml-3 text-sm font-medium text-gray-700">IVRT ≤ 70 ms</label></div>
                         </div>
                     </div>
                 </div>
@@ -157,161 +99,57 @@
 
             <!-- Special Conditions Sections -->
             <div id="special-conditions-sections" class="hidden">
-                <!-- Atrial Fibrillation (Figure 8) -->
-                <div id="afib-section" class="condition-card hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                             <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">AFib: Core Indicators</h2>
-                             <div class="space-y-4">
-                                <div><label class="block text-sm font-medium text-gray-600">Mitral E-wave Velocity (cm/s)</label><input type="number" id="afib-mitral-e" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 110"></div>
-                                <div><label class="block text-sm font-medium text-gray-600">Septal E/e' Ratio</label><input type="number" id="afib-septal-ee" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 12"></div>
-                                <div><label class="block text-sm font-medium text-gray-600">Peak TR Velocity (m/s)</label><input type="number" id="afib-tr" step="0.1" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 3.0"></div>
-                                <div><label class="block text-sm font-medium text-gray-600">Deceleration Time (DT) (ms)</label><input type="number" id="afib-dt" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 150"></div>
+                <div id="afib-section" class="condition-card hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-6 rounded-lg border"><h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">AFib: Core Findings</h2><div class="space-y-4"><div class="flex items-start"><input id="afib-e-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-e-abnormal" class="ml-3 text-sm font-medium">Mitral E velocity ≥ 100 cm/s</label></div><div class="flex items-start"><input id="afib-ee-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-ee-abnormal" class="ml-3 text-sm font-medium">Septal E/e' ratio > 11</label></div><div class="flex items-start"><input id="afib-tr-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-tr-abnormal" class="ml-3 text-sm font-medium">TR velocity > 2.8 m/s</label></div><div class="flex items-start"><input id="afib-dt-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-dt-abnormal" class="ml-3 text-sm font-medium">DT ≤ 160 ms</label></div></div></div>
+                    <div id="afib-supplemental-card" class="bg-gray-50 p-6 rounded-lg border hidden"><h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">AFib: Supplemental Findings</h2><p class="text-sm text-gray-500 mb-4">Needed because 2 core findings are positive.</p><div class="space-y-4"><div class="flex items-start"><input id="afib-lars-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-lars-abnormal" class="ml-3 text-sm font-medium">LARS &lt; 18%</label></div><div class="flex items-start"><input id="afib-sd-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-sd-abnormal" class="ml-3 text-sm font-medium">Pulm vein S/D ratio &lt; 1</label></div><div class="flex items-start"><input id="afib-bmi-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="afib-bmi-abnormal" class="ml-3 text-sm font-medium">BMI > 30 kg/m²</label></div></div></div>
+                </div>
+                <div id="mac-section" class="condition-card hidden bg-gray-50 p-6 rounded-lg border max-w-md mx-auto"><h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Mod/Severe MAC</h2><div class="space-y-4"><div><h3 class="text-md font-semibold text-gray-700 mb-2">Select E/A Ratio Finding</h3><div class="space-y-2"><div class="flex items-center"><input type="radio" id="mac-ea-lt08" name="mac-ea-ratio" value="lt08" class="h-4 w-4"><label for="mac-ea-lt08" class="ml-3 text-sm">E/A Ratio is &lt; 0.8</label></div><div class="flex items-center"><input type="radio" id="mac-ea-mid" name="mac-ea-ratio" value="mid" class="h-4 w-4"><label for="mac-ea-mid" class="ml-3 text-sm">E/A Ratio is 0.8 - 1.8</label></div><div class="flex items-center"><input type="radio" id="mac-ea-gt18" name="mac-ea-ratio" value="gt18" class="h-4 w-4"><label for="mac-ea-gt18" class="ml-3 text-sm">E/A Ratio is > 1.8</label></div></div></div><div id="mac-ivrt-wrapper" class="hidden pt-4 border-t mt-4"><h3 class="text-md font-semibold text-gray-700 mb-2">IVRT Finding</h3><div class="flex items-start"><input id="mac-ivrt-abnormal" type="checkbox" class="h-5 w-5 mt-0.5"><label for="mac-ivrt-abnormal" class="ml-3 text-sm font-medium">IVRT is &lt; 80 ms</label></div></div></div></div>
+                <div id="ph-section" class="condition-card hidden bg-gray-50 p-6 rounded-lg border max-w-lg mx-auto"><h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Pulmonary Hypertension</h2><div class="space-y-3"><div><h3 class="text-md font-semibold text-gray-700 mb-2">Select Initial Finding</h3><div class="space-y-2"><div class="flex items-center"><input type="radio" name="ph-path" id="ph-path-normal" value="normal"><label for="ph-path-normal" class="ml-3 text-sm">E/A ≤ 0.8 and E ≤ 50 cm/s</label></div><div class="flex items-center"><input type="radio" name="ph-path" id="ph-path-elevated" value="elevated"><label for="ph-path-elevated" class="ml-3 text-sm">E/A ≥ 2 and e' is reduced</label></div><div class="flex items-center"><input type="radio" name="ph-path" id="ph-path-mid" value="mid"><label for="ph-path-mid" class="ml-3 text-sm">Neither of the above apply</label></div></div></div><div id="ph-supplemental-wrapper" class="hidden pt-3 border-t mt-3 space-y-3"><div><h3 class="text-sm font-semibold text-gray-600 mb-2">For Intermediate cases, select one path:</h3><div class="space-y-2"><div class="flex items-center"><input type="radio" name="ph-supp-path" id="ph-supp-lars" value="lars"><label for="ph-supp-lars" class="ml-3 text-sm">LARS is available</label></div><div class="flex items-center"><input type="radio" name="ph-supp-path" id="ph-supp-ee" value="ee"><label for="ph-supp-ee" class="ml-3 text-sm">LARS is not available</label></div></div></div><div id="ph-lars-wrapper" class="hidden pt-2 mt-2 space-y-2"><h4 class="text-sm font-semibold">LARS Finding</h4><div class="flex items-center"><input id="ph-lars-abnormal" type="checkbox"><label for="ph-lars-abnormal" class="ml-3 text-sm">LARS is ≤ 18%</label></div></div><div id="ph-ee-wrapper" class="hidden pt-2 mt-2 space-y-2"><h4 class="text-sm font-semibold">Lateral E/e' Finding</h4><div class="flex items-center"><input type="radio" name="ph-ee-ratio" id="ph-ee-lt8" value="lt8"><label for="ph-ee-lt8" class="ml-3 text-sm">Lateral E/e' &lt; 8</label></div><div class="flex items-center"><input type="radio" name="ph-ee-ratio" id="ph-ee-gt13" value="gt13"><label for="ph-ee-gt13" class="ml-3 text-sm">Lateral E/e' > 13</label></div><div class="flex items-center"><input type="radio" name="ph-ee-ratio" id="ph-ee-mid" value="mid"><label for="ph-ee-mid" class="ml-3 text-sm">Lateral E/e' is 8-13</label></div></div></div></div></div>
+                <div id="htx-section" class="condition-card hidden bg-gray-50 p-6 rounded-lg border max-w-lg mx-auto">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Heart Transplant</h2>
+                    <p class="text-xs text-gray-600 mb-4 bg-gray-100 p-2 rounded-md"><strong>Note:</strong> E/SRivr is the ratio of mitral E velocity to the LV strain rate during the isovolumic relaxation period.</p>
+                    <div class="space-y-3">
+                        <div>
+                            <h3 class="text-md font-semibold text-gray-700 mb-2">Select Average E/e' Finding</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center"><input type="radio" name="htx-ee" id="htx-ee-lt7" value="lt7"><label for="htx-ee-lt7" class="ml-3 text-sm">Average E/e' &lt; 7</label></div>
+                                <div class="flex items-center"><input type="radio" name="htx-ee" id="htx-ee-mid" value="mid"><label for="htx-ee-mid" class="ml-3 text-sm">Average E/e' is 7-14</label></div>
+                                <div class="flex items-center"><input type="radio" name="htx-ee" id="htx-ee-gt14" value="gt14"><label for="htx-ee-gt14" class="ml-3 text-sm">Average E/e' > 14</label></div>
                             </div>
                         </div>
-                        <div id="afib-supplemental-card" class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                             <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">AFib: Supplemental Indicators</h2>
-                             <p class="text-sm text-gray-500 mb-4">Needed if 2 core indicators are positive.</p>
-                             <div class="space-y-4">
-                                <div><label class="block text-sm font-medium text-gray-600">LARS (%)</label><input type="number" id="afib-lars" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 17"></div>
-                                <div><label class="block text-sm font-medium text-gray-600">Pulmonary Vein S/D Ratio</label><input type="number" id="afib-sd" step="0.1" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 0.8"></div>
-                                <div><label class="block text-sm font-medium text-gray-600">BMI (kg/m²)</label><input type="number" id="afib-bmi" step="0.1" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 32"></div>
+                        <div id="htx-supplemental-wrapper" class="hidden pt-3 border-t mt-3 space-y-3">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-600 mb-2">For intermediate E/e', select one path:</h3>
+                                <div class="space-y-2">
+                                    <div class="flex items-center"><input type="radio" name="htx-supp-path" id="htx-supp-esrivr" value="esrivr"><label for="htx-supp-esrivr" class="ml-3 text-sm">E/SRivr is available</label></div>
+                                    <div class="flex items-center"><input type="radio" name="htx-supp-path" id="htx-supp-tr" value="tr"><label for="htx-supp-tr" class="ml-3 text-sm">E/SRivr is not available</label></div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- MAC (Figure 4) -->
-                 <div id="mac-section" class="condition-card hidden">
-                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 max-w-md mx-auto">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Mod/Severe MAC</h2>
-                        <div class="space-y-4">
-                           <div><label class="block text-sm font-medium text-gray-600">Mitral E-wave Velocity (cm/s)</label><input type="number" id="mac-mitral-e" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 90"></div>
-                           <div><label class="block text-sm font-medium text-gray-600">Mitral A-wave Velocity (cm/s)</label><input type="number" id="mac-mitral-a" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 70"></div>
-                           <div id="mac-ivrt-wrapper" class="hidden">
-                               <label class="block text-sm font-medium text-gray-600">IVRT (ms)</label>
-                               <input type="number" id="mac-ivrt" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm" placeholder="e.g., 85">
-                           </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Pulmonary Hypertension (Figure 6) -->
-                 <div id="ph-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 max-w-lg mx-auto">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Pulmonary Hypertension</h2>
-                        <div class="space-y-4">
-                           <div><label class="block text-sm font-medium text-gray-600">Mitral E-wave Velocity (cm/s)</label><input type="number" id="ph-mitral-e" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm"></div>
-                           <div><label class="block text-sm font-medium text-gray-600">Mitral A-wave Velocity (cm/s)</label><input type="number" id="ph-mitral-a" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm"></div>
-                           <div id="ph-supplemental-wrapper" class="hidden space-y-4 pt-4 border-t">
-                               <div><label class="block text-sm font-medium text-gray-600">LARS (%)</label><input type="number" id="ph-lars" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm"></div>
-                                <div id="ph-lateral-wrapper" class="hidden">
-                                   <label class="block text-sm font-medium text-gray-600">Lateral E/e' ratio</label><input type="number" id="ph-lateral-ee" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm">
-                                </div>
-                           </div>
-                           <div class="flex items-center"><input id="ph-e-prime-reduced" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><label for="ph-e-prime-reduced" class="ml-2 block text-sm text-gray-900">e' is reduced</label></div>
-                        </div>
-                    </div>
-                 </div>
-                <!-- Heart Transplant (Figure 5) -->
-                <div id="htx-section" class="condition-card hidden">
-                    <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 max-w-lg mx-auto">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Heart Transplant</h2>
-                        <div class="space-y-4">
-                            <div><label class="block text-sm font-medium text-gray-600">Average E/e' ratio</label><input type="number" id="htx-avg-ee" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm"></div>
-                            <div id="htx-supplemental-wrapper" class="hidden space-y-4 pt-4 border-t">
-                                <div><label class="block text-sm font-medium text-gray-600">E/SR<sub class="text-xs">IVR</sub> (cm)</label><input type="number" id="htx-esrivr" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm"></div>
-                                <div id="htx-tr-wrapper" class="hidden">
-                                    <label class="block text-sm font-medium text-gray-600">Peak TR Velocity (m/s)</label><input type="number" id="htx-tr" step="0.1" class="mt-1 block w-full p-2 rounded-md border-gray-300 shadow-sm">
-                                    <p class="text-xs text-gray-500 mt-1">Leave blank if TR is absent or incomplete.</p>
-                                </div>
+                            <div id="htx-esrivr-wrapper" class="hidden pt-2 mt-2">
+                                <h4 class="text-sm font-semibold">E/SRivr Finding</h4>
+                                <div class="flex items-center"><input id="htx-esrivr-abnormal" type="checkbox"><label for="htx-esrivr-abnormal" class="ml-3 text-sm">E/SRivr is > 200 cm</label></div>
+                            </div>
+                            <div id="htx-tr-wrapper" class="hidden pt-2 mt-2 space-y-2">
+                                <h4 class="text-sm font-semibold">TR Velocity Finding</h4>
+                                <div class="flex items-center"><input type="radio" name="htx-tr-status" id="htx-tr-gt28" value="gt28"><label for="htx-tr-gt28" class="ml-3 text-sm">TR Velocity > 2.8 m/s</label></div>
+                                <div class="flex items-center"><input type="radio" name="htx-tr-status" id="htx-tr-le28" value="le28"><label for="htx-tr-le28" class="ml-3 text-sm">TR Velocity ≤ 2.8 m/s</label></div>
+                                <div class="flex items-center"><input type="radio" name="htx-tr-status" id="htx-tr-absent" value="absent"><label for="htx-tr-absent" class="ml-3 text-sm">TR absent or incomplete</label></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Info Only Sections -->
-                <div id="hcm-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">Hypertrophic Cardiomyopathy (HCM)</h2>
-                        <p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures in patients with HCM (Table 7):</p>
-                        <ul class="list-disc list-inside space-y-1 text-gray-800">
-                            <li>Average E/e' > 14</li>
-                            <li>Ar-A duration ≥ 30 ms</li>
-                            <li>Peak TR velocity > 2.8 m/s</li>
-                            <li>LA maximum volume index > 34 mL/m²</li>
-                        </ul>
-                    </div>
-                </div>
-                <div id="rcm-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">Restrictive Cardiomyopathy (RCM)</h2>
-                        <p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures in patients with RCM (Table 7):</p>
-                        <ul class="list-disc list-inside space-y-1 text-gray-800">
-                            <li>Average E/e' > 14</li>
-                            <li>Deceleration Time (DT) < 140 ms</li>
-                            <li>E/A ratio > 2.5</li>
-                            <li>IVRT < 50 ms</li>
-                        </ul>
-                    </div>
-                </div>
-                <div id="lvad-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">LV Assist Device (LVAD)</h2>
-                        <p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures in patients with an LVAD (Table 7):</p>
-                        <ul class="list-disc list-inside space-y-1 text-gray-800">
-                            <li>E/A ratio > 2</li>
-                            <li>RAP > 10 mm Hg</li>
-                            <li>PASP > 40 mm Hg</li>
-                            <li>Average E/e' ratio > 14 or Septal E/e' ratio ≥ 15</li>
-                            <li>LA maximum volume index > 33 mL/m²</li>
-                            <li>Interatrial septum position (bulging to right)</li>
-                        </ul>
-                    </div>
-                </div>
-                <div id="tachy-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">Sinus Tachycardia</h2>
-                        <p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures in patients with Sinus Tachycardia (Table 7):</p>
-                        <ul class="list-disc list-inside space-y-1 text-gray-800">
-                            <li>Predominant early LV filling pattern with depressed LVEF</li>
-                            <li>IVRT ≤ 70 ms (specific)</li>
-                            <li>Pulmonary vein systolic filling fraction ≤ 40% (specific)</li>
-                            <li>Average E/e' ratio > 14 (high specificity, low sensitivity)</li>
-                            <li>Note: Post-PVC beats can help separate fused E and A waves.</li>
-                        </ul>
-                    </div>
-                </div>
-                <div id="mr-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">Mitral Regurgitation (MR)</h2>
-                        <p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures in patients with Mitral Regurgitation (Table 7):</p>
-                        <ul class="list-disc list-inside space-y-1 text-gray-800">
-                            <li>IVRT < 60 ms</li>
-                            <li>Ar-A duration ≥ 30 ms</li>
-                            <li>IVRT/T<sub>E-e'</sub> ratio < 5.6</li>
-                            <li>Average E/e' ratio > 14 (in patients with depressed EF)</li>
-                        </ul>
-                    </div>
-                </div>
-                <div id="ms-section" class="condition-card hidden">
-                     <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-700 mb-2">Mitral Stenosis (MS)</h2>
-                        <p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures in patients with Mitral Stenosis (Table 7):</p>
-                        <ul class="list-disc list-inside space-y-1 text-gray-800">
-                            <li>IVRT < 60 ms</li>
-                            <li>Mitral A peak velocity > 1.5 m/s</li>
-                            <li>IVRT/T<sub>E-e'</sub> ratio < 4.2</li>
-                        </ul>
-                    </div>
-                </div>
+                <div id="hcm-section" class="condition-card hidden"><div class="bg-gray-50 p-6 rounded-lg border border-gray-200"><h2 class="text-xl font-semibold text-gray-700 mb-2">Hypertrophic Cardiomyopathy (HCM)</h2><p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures (Table 7):</p><ul class="list-disc list-inside space-y-1 text-gray-800"><li>Average E/e' > 14</li><li>Ar-A duration ≥ 30 ms</li><li>Peak TR velocity > 2.8 m/s</li><li>LA maximum volume index > 34 mL/m²</li></ul></div></div>
+                <div id="rcm-section" class="condition-card hidden"><div class="bg-gray-50 p-6 rounded-lg border border-gray-200"><h2 class="text-xl font-semibold text-gray-700 mb-2">Restrictive Cardiomyopathy (RCM)</h2><p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures (Table 7):</p><ul class="list-disc list-inside space-y-1 text-gray-800"><li>Average E/e' > 14</li><li>Deceleration Time (DT) < 140 ms</li><li>E/A ratio > 2.5</li><li>IVRT < 50 ms</li></ul></div></div>
+                <div id="lvad-section" class="condition-card hidden"><div class="bg-gray-50 p-6 rounded-lg border border-gray-200"><h2 class="text-xl font-semibold text-gray-700 mb-2">LV Assist Device (LVAD)</h2><p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures (Table 7):</p><ul class="list-disc list-inside space-y-1 text-gray-800"><li>E/A ratio > 2</li><li>RAP > 10 mm Hg</li><li>PASP > 40 mm Hg</li><li>Average E/e' ratio > 14 or Septal E/e' ratio ≥ 15</li><li>LA maximum volume index > 33 mL/m²</li><li>Interatrial septum position (bulging to right)</li></ul></div></div>
+                <div id="tachy-section" class="condition-card hidden"><div class="bg-gray-50 p-6 rounded-lg border border-gray-200"><h2 class="text-xl font-semibold text-gray-700 mb-2">Sinus Tachycardia</h2><p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures (Table 7):</p><ul class="list-disc list-inside space-y-1 text-gray-800"><li>Predominant early LV filling pattern with depressed LVEF</li><li>IVRT ≤ 70 ms (specific)</li><li>Pulmonary vein systolic filling fraction ≤ 40% (specific)</li><li>Average E/e' ratio > 14 (high specificity, low sensitivity)</li><li>Note: Post-PVC beats can help separate fused E and A waves.</li></ul></div></div>
+                <div id="mr-section" class="condition-card hidden"><div class="bg-gray-50 p-6 rounded-lg border border-gray-200"><h2 class="text-xl font-semibold text-gray-700 mb-2">Mitral Regurgitation (MR)</h2><p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures (Table 7):</p><ul class="list-disc list-inside space-y-1 text-gray-800"><li>IVRT < 60 ms</li><li>Ar-A duration ≥ 30 ms</li><li>IVRT/T<sub>E-e'</sub> ratio < 5.6</li><li>Average E/e' ratio > 14 (in patients with depressed EF)</li></ul></div></div>
+                <div id="ms-section" class="condition-card hidden"><div class="bg-gray-50 p-6 rounded-lg border border-gray-200"><h2 class="text-xl font-semibold text-gray-700 mb-2">Mitral Stenosis (MS)</h2><p class="text-sm text-gray-600 mb-4">The following parameters are indicative of elevated LV filling pressures (Table 7):</p><ul class="list-disc list-inside space-y-1 text-gray-800"><li>IVRT < 60 ms</li><li>Mitral A peak velocity > 1.5 m/s</li><li>IVRT/T<sub>E-e'</sub> ratio < 4.2</li></ul></div></div>
             </div>
 
-            <!-- Actions and Results -->
             <div class="mt-8 text-center">
-                <button id="calculate-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                    Calculate
-                </button>
-                 <button id="reset-btn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 ml-4 transition duration-150 ease-in-out">
-                    Reset
-                </button>
+                <button id="calculate-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">Calculate</button>
+                <button id="reset-btn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 ml-4 transition duration-150 ease-in-out">Reset</button>
             </div>
 
             <div id="result-container" class="mt-8"></div>
@@ -325,138 +163,85 @@
             const resetBtn = document.getElementById('reset-btn');
             const resultContainer = document.getElementById('result-container');
             const supplementalCard = document.getElementById('supplemental-card');
-
             const sections = {
                 standard: document.getElementById('standard-algorithm-section'),
                 special: document.getElementById('special-conditions-sections'),
-                afib: document.getElementById('afib-section'),
-                mac: document.getElementById('mac-section'),
-                ph: document.getElementById('ph-section'),
-                htx: document.getElementById('htx-section'),
-                hcm: document.getElementById('hcm-section'),
-                rcm: document.getElementById('rcm-section'),
-                lvad: document.getElementById('lvad-section'),
-                tachy: document.getElementById('tachy-section'),
-                mr: document.getElementById('mr-section'),
-                ms: document.getElementById('ms-section'),
+                afib: document.getElementById('afib-section'), mac: document.getElementById('mac-section'),
+                ph: document.getElementById('ph-section'), htx: document.getElementById('htx-section'),
+                hcm: document.getElementById('hcm-section'), rcm: document.getElementById('rcm-section'),
+                lvad: document.getElementById('lvad-section'), tachy: document.getElementById('tachy-section'),
+                mr: document.getElementById('mr-section'), ms: document.getElementById('ms-section'),
             };
-            
             const infoOnlyConditions = ['hcm', 'rcm', 'lvad', 'tachy', 'mr', 'ms'];
 
-            const inputs = {
-                septalEPrime: document.getElementById('septal-e-prime'),
-                lateralEPrime: document.getElementById('lateral-e-prime'),
-                mitralEVelocity: document.getElementById('mitral-e-velocity'),
-                mitralAVelocity: document.getElementById('mitral-a-velocity'),
-                trVelocity: document.getElementById('tr-velocity'),
-                lars: document.getElementById('lars'),
-                pulmVeinSD: document.getElementById('pulm-vein-sd'),
-                lavi: document.getElementById('lavi'),
-                ivrt: document.getElementById('ivrt'),
-                afibMitralE: document.getElementById('afib-mitral-e'),
-                afibSeptalEE: document.getElementById('afib-septal-ee'),
-                afibTR: document.getElementById('afib-tr'),
-                afibDT: document.getElementById('afib-dt'),
-                afibLars: document.getElementById('afib-lars'),
-                afibSD: document.getElementById('afib-sd'),
-                afibBmi: document.getElementById('afib-bmi'),
-                macMitralE: document.getElementById('mac-mitral-e'),
-                macMitralA: document.getElementById('mac-mitral-a'),
-                macIvrt: document.getElementById('mac-ivrt'),
-                phMitralE: document.getElementById('ph-mitral-e'),
-                phMitralA: document.getElementById('ph-mitral-a'),
-                phLars: document.getElementById('ph-lars'),
-                phLateralEE: document.getElementById('ph-lateral-ee'),
-                phEPrimeReduced: document.getElementById('ph-e-prime-reduced'),
-                htxAvgEE: document.getElementById('htx-avg-ee'),
-                htxEsrivr: document.getElementById('htx-esrivr'),
-                htxTr: document.getElementById('htx-tr')
-            };
-            
-            // --- UI Management ---
             const manageSections = () => {
                 const selected = specialConditionSelect.value;
                 resultContainer.innerHTML = '';
-
                 Object.values(sections).forEach(s => s.classList.add('hidden'));
-                Object.values(sections.special.children).forEach(child => child.classList.add('hidden'));
-                
+                if (sections.special) Array.from(sections.special.children).forEach(child => child.classList.add('hidden'));
                 calculateBtn.classList.toggle('hidden', infoOnlyConditions.includes(selected));
-
-                if (selected === 'none') {
-                    sections.standard.classList.remove('hidden');
-                } else {
+                if (selected === 'none') sections.standard.classList.remove('hidden');
+                else {
                     sections.special.classList.remove('hidden');
-                    if(sections[selected]) {
-                        sections[selected].classList.remove('hidden');
-                    }
+                    if(sections[selected]) sections[selected].classList.remove('hidden');
                 }
             };
-            
+
             const clearInputs = () => {
-                Object.values(inputs).forEach(input => {
-                    if (input.type === 'checkbox') input.checked = false;
-                    else input.value = '';
+                document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+                document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    if(radio.name === 'ea-ratio' && radio.value === 'unknown') radio.checked = true;
+                    else radio.checked = false;
                 });
                 supplementalCard.classList.add('hidden');
+                document.getElementById('afib-supplemental-card').classList.add('hidden');
                 document.getElementById('mac-ivrt-wrapper').classList.add('hidden');
                 document.getElementById('ph-supplemental-wrapper').classList.add('hidden');
-                document.getElementById('ph-lateral-wrapper').classList.add('hidden');
+                document.getElementById('ph-lars-wrapper').classList.add('hidden');
+                document.getElementById('ph-ee-wrapper').classList.add('hidden');
                 document.getElementById('htx-supplemental-wrapper').classList.add('hidden');
+                document.getElementById('htx-esrivr-wrapper').classList.add('hidden');
                 document.getElementById('htx-tr-wrapper').classList.add('hidden');
             };
 
-            specialConditionSelect.addEventListener('change', () => {
-                clearInputs();
-                manageSections();
-            });
+            specialConditionSelect.addEventListener('change', () => { clearInputs(); manageSections(); });
             
             const getValues = () => {
-                const values = {};
-                for (const key in inputs) {
-                     if (inputs[key].type === 'checkbox') {
-                        values[key] = inputs[key].checked;
-                    } else {
-                        values[key] = inputs[key].value ? parseFloat(inputs[key].value) : null;
-                    }
-                }
-                return values;
+                return {
+                    coreEPrimeReduced: document.getElementById('core-e-prime-reduced').checked,
+                    coreEeIncreased: document.getElementById('core-ee-increased').checked,
+                    coreTrIncreased: document.getElementById('core-tr-increased').checked,
+                    suppSdReduced: document.getElementById('supp-sd-reduced').checked,
+                    suppLarsReduced: document.getElementById('supp-lars-reduced').checked,
+                    suppLaviIncreased: document.getElementById('supp-lavi-increased').checked,
+                    suppIvrtReduced: document.getElementById('supp-ivrt-reduced').checked,
+                    afibEAbnormal: document.getElementById('afib-e-abnormal').checked,
+                    afibEeAbnormal: document.getElementById('afib-ee-abnormal').checked,
+                    afibTrAbnormal: document.getElementById('afib-tr-abnormal').checked,
+                    afibDtAbnormal: document.getElementById('afib-dt-abnormal').checked,
+                    afibLarsAbnormal: document.getElementById('afib-lars-abnormal').checked,
+                    afibSdAbnormal: document.getElementById('afib-sd-abnormal').checked,
+                    afibBmiAbnormal: document.getElementById('afib-bmi-abnormal').checked,
+                    macIvrtAbnormal: document.getElementById('mac-ivrt-abnormal').checked,
+                    phLarsAbnormal: document.getElementById('ph-lars-abnormal').checked,
+                    htxEsrivrAbnormal: document.getElementById('htx-esrivr-abnormal').checked,
+                };
             };
 
             const displayResult = (report) => {
-                let criteriaList = report.criteria && report.criteria.length > 0
-                    ? `<ul>${report.criteria.map(c => `<li class="flex items-start"><svg class="w-5 h-5 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${c}</li>`).join('')}</ul>`
-                    : '<p>No specific criteria met for this conclusion.</p>';
-                
-                let bgColor, titleColor, textColor;
-                switch (report.grade) {
-                    case 'Normal DF': case 'Normal LAP': bgColor = 'bg-green-100'; titleColor = 'text-green-800'; textColor = 'text-green-700'; break;
-                    case 'Grade 1': bgColor = 'bg-blue-100'; titleColor = 'text-blue-800'; textColor = 'text-blue-700'; break;
-                    case 'Grade 2': case 'Elevated LAP': bgColor = 'bg-yellow-100'; titleColor = 'text-yellow-800'; textColor = 'text-yellow-700'; break;
-                    case 'Grade 3': bgColor = 'bg-red-100'; titleColor = 'text-red-800'; textColor = 'text-red-700'; break;
-                    default: bgColor = 'bg-gray-100'; titleColor = 'text-gray-800'; textColor = 'text-gray-700'; break;
-                }
-
-                resultContainer.innerHTML = `
-                    <div class="result-card ${bgColor} rounded-lg p-6 shadow-md">
-                        <h2 class="text-2xl font-bold ${titleColor} mb-2">${report.grade}</h2>
-                        ${report.lap ? `<p class="text-lg font-medium ${textColor} mb-4">LAP Estimate: ${report.lap}</p>` : ''}
-                        <div class="border-t border-gray-300 pt-4 mt-4">
-                            <h3 class="font-semibold text-gray-800 mb-2">Reasoning & Criteria:</h3>
-                            <p class="text-sm text-gray-600 mb-3">${report.reason}</p>
-                            <div class="text-sm text-gray-700 space-y-1">${criteriaList}</div>
-                        </div>
-                         ${report.note ? `<div class="mt-4 pt-4 border-t border-gray-300 text-sm text-gray-600 italic">${report.note}</div>` : ''}
-                    </div>
-                `;
+                let criteriaList = report.criteria?.length > 0 ? `<ul>${report.criteria.map(c => `<li class="flex items-start"><svg class="w-5 h-5 mr-2 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${c}</li>`).join('')}</ul>` : '<p>No specific criteria identified.</p>';
+                const colors = { 'Normal Diastolic Function': 'green', 'Normal LAP': 'green', 'Grade 1': 'blue', 'Grade 2': 'yellow', 'Elevated LAP': 'yellow', 'Grade 3': 'red' };
+                const color = colors[report.grade] || 'gray';
+                resultContainer.innerHTML = `<div class="result-card bg-${color}-100 rounded-lg p-6 shadow-md"><h2 class="text-2xl font-bold text-${color}-800 mb-2">${report.grade}</h2>${report.lap ? `<p class="text-lg font-medium text-${color}-700 mb-4">LAP Estimate: ${report.lap}</p>` : ''}<div class="border-t border-gray-300 pt-4 mt-4"><h3 class="font-semibold text-gray-800 mb-2">Reasoning & Criteria:</h3><p class="text-sm text-gray-600 mb-3">${report.reason}</p><div class="text-sm text-gray-700 space-y-1">${criteriaList}</div></div>${report.note ? `<div class="mt-4 pt-4 border-t border-gray-300 text-sm text-gray-600 italic">${report.note}</div>` : ''}</div>`;
                 setTimeout(() => { resultContainer.querySelector('.result-card').classList.add('show'); }, 10);
             };
 
             const calculateDiastology = () => {
                 const condition = specialConditionSelect.value;
-                const v = getValues(); // Get values at the top level
+                const v = getValues();
+                const eaRatio = document.querySelector('input[name="ea-ratio"]:checked')?.value;
                 switch (condition) {
-                    case 'none': calculateStandard(v); break;
+                    case 'none': calculateStandard({ ...v, eaRatio }); break;
                     case 'afib': calculateAfib(v); break;
                     case 'mac': calculateMac(v); break;
                     case 'ph': calculatePH(v); break;
@@ -464,220 +249,159 @@
                 }
             };
             
-            // --- Calculation Functions ---
             const calculateStandard = (v) => {
-                 resultContainer.innerHTML = ''; supplementalCard.classList.add('hidden');
-                
+                supplementalCard.classList.add('hidden');
                 const criteria = [];
-                const avgEPrime = (v.septalEPrime !== null && v.lateralEPrime !== null) ? (v.septalEPrime + v.lateralEPrime) / 2 : null;
-                const avgEOverEPrime = (v.mitralEVelocity !== null && avgEPrime !== null) ? v.mitralEVelocity / avgEPrime : null;
-                const septalEOverEPrime = (v.mitralEVelocity !== null && v.septalEPrime !== null) ? v.mitralEVelocity / v.septalEPrime : null;
-                const lateralEOverEPrime = (v.mitralEVelocity !== null && v.lateralEPrime !== null) ? v.mitralEVelocity / v.lateralEPrime : null;
-                const eOverA = (v.mitralEVelocity !== null && v.mitralAVelocity !== null) ? v.mitralEVelocity / v.mitralAVelocity : null;
-                
                 let abnormalParams = 0;
-                let isEPrimeReduced = false, isEOverEPrimeIncreased = false, isTRVelocityIncreased = false;
-                let assessableCount = 0;
+                if (v.coreEPrimeReduced) { abnormalParams++; criteria.push("Reduced e' velocity"); }
+                if (v.coreEeIncreased) { abnormalParams++; criteria.push("Increased E/e' ratio"); }
+                if (v.coreTrIncreased) { abnormalParams++; criteria.push("Increased TR velocity"); }
 
-                if (v.septalEPrime !== null || v.lateralEPrime !== null) {
-                    assessableCount++;
-                    if ((v.septalEPrime !== null && v.septalEPrime <= 6) || (v.lateralEPrime !== null && v.lateralEPrime <= 7) || (avgEPrime !== null && avgEPrime <= 6.5)) {
-                        isEPrimeReduced = true;
-                        abnormalParams++;
-                        criteria.push(`Reduced e' velocity`);
-                    }
-                }
-                 if (v.mitralEVelocity !== null && (v.septalEPrime !== null || v.lateralEPrime !== null)) {
-                    assessableCount++;
-                    if ((septalEOverEPrime !== null && septalEOverEPrime >= 15) || (lateralEOverEPrime !== null && lateralEOverEPrime >= 13) || (avgEOverEPrime !== null && avgEOverEPrime >= 14)) {
-                        isEOverEPrimeIncreased = true;
-                        abnormalParams++;
-                        criteria.push(`Increased E/e' ratio`);
-                    }
-                }
-                if (v.trVelocity !== null) {
-                    assessableCount++;
-                    if (v.trVelocity >= 2.8) {
-                        isTRVelocityIncreased = true;
-                        abnormalParams++;
-                        criteria.push(`Increased TR velocity`);
-                    }
-                }
-
-                if (abnormalParams === 3) {
-                    const reason = `All 3 core parameters are abnormal` + (eOverA !== null ? ` and E/A ratio (${eOverA.toFixed(2)}) is ${eOverA >= 2 ? '≥ 2' : '< 2'}.` : '.');
-                    const grade = (eOverA !== null && eOverA >= 2) ? 'Grade 3' : 'Grade 2';
-                    const lap = (eOverA !== null && eOverA >= 2) ? 'Markedly Increased' : 'Mild/Mod Increased';
-                    displayResult({ grade, lap, reason, criteria });
+                if (abnormalParams >= 3) {
+                    if (v.eaRatio === 'ge2') displayResult({ grade: 'Grade 3', lap: 'Markedly Increased', reason: 'All 3 core parameters are abnormal and E/A ratio is ≥ 2.', criteria });
+                    else if (v.eaRatio === 'unknown') displayResult({ grade: 'Indeterminate', lap: 'Increased (Grade TBD)', reason: 'All 3 core parameters are abnormal. E/A ratio is required for final grading.', criteria });
+                    else displayResult({ grade: 'Grade 2', lap: 'Mild/Mod Increased', reason: 'All 3 core parameters are abnormal.', criteria });
                     return;
                 }
-
                 if (abnormalParams === 0) {
-                     if (assessableCount === 3) {
-                        displayResult({ grade: 'Normal DF', lap: 'Normal', reason: 'All 3 core parameters are available and normal.', criteria: ['All core parameters normal'] });
-                    } else {
-                        displayResult({ grade: 'Indeterminate', reason: 'No abnormal parameters found, but not all core parameters were provided for a complete assessment.', criteria, note: 'Provide all 3 core parameters for a definitive "Normal" conclusion.'});
-                    }
+                    displayResult({ grade: 'Normal Diastolic Function', lap: 'Normal', reason: 'No abnormal core parameters were selected.', criteria: ['All core parameters normal'] });
                     return;
                 }
-
-                if (isEPrimeReduced && !isEOverEPrimeIncreased && !isTRVelocityIncreased) {
-                    if (eOverA === null) {
-                        displayResult({ grade: 'Indeterminate', lap: 'Cannot Determine', reason: 'Only e\' is reduced. E/A ratio is required to proceed.', criteria, note: 'Please provide Mitral E and A wave velocities.' });
-                        return;
-                    }
-                    if (eOverA <= 0.8) {
-                        displayResult({ grade: 'Grade 1', lap: 'Normal', reason: `Only e' is reduced and the calculated E/A ratio (${eOverA.toFixed(2)}) is ≤ 0.8.`, criteria });
-                    } else { // E/A > 0.8
+                if (abnormalParams === 1 && v.coreEPrimeReduced) {
+                    if (v.eaRatio === 'le08') displayResult({ grade: 'Grade 1', lap: 'Normal', reason: "Only e' is reduced and E/A ratio is ≤ 0.8.", criteria });
+                    else if (v.eaRatio === 'unknown') displayResult({ grade: 'Indeterminate', reason: "Only e' is reduced. E/A ratio is required to proceed.", criteria });
+                    else {
                         supplementalCard.classList.remove('hidden');
-                        if (v.lars === null && v.pulmVeinSD === null && v.lavi === null && v.ivrt === null) {
-                            displayResult({ grade: 'Indeterminate', lap: 'Needs Further Data', reason: `e' is reduced and E/A ratio (${eOverA.toFixed(2)}) is > 0.8. Supplemental parameters are required.`, criteria });
-                            return;
-                        }
-                        
-                        let sP = false;
-                        if (v.lars !== null && v.lars <= 18) { sP = true; criteria.push('LARS ≤ 18%'); }
-                        if (v.pulmVeinSD !== null && v.pulmVeinSD <= 0.67) { sP = true; criteria.push('S/D ≤ 0.67'); }
-                        if (v.lavi !== null && v.lavi > 34) { sP = true; criteria.push('LAVI > 34'); }
-                        if (v.ivrt !== null && v.ivrt <= 70) { sP = true; criteria.push('IVRT ≤ 70 ms'); }
-
-                        if (sP) {
-                            const grade = eOverA < 2 ? 'Grade 2' : 'Grade 3';
-                            const lap = eOverA < 2 ? 'Mild/Mod Increased' : 'Markedly Increased';
-                            displayResult({ grade, lap, reason: `e' reduced, E/A (${eOverA.toFixed(2)}) > 0.8, and supplemental parameter(s) positive.`, criteria });
-                        } else {
-                            displayResult({ grade: 'Grade 1', lap: 'Normal', reason: `e' reduced, E/A (${eOverA.toFixed(2)}) > 0.8, but supplemental parameters were negative.`, criteria });
+                        const anySupp = v.suppSdReduced || v.suppLarsReduced || v.suppLaviIncreased || v.suppIvrtReduced;
+                        if (!anySupp) displayResult({ grade: 'Grade 1', lap: 'Normal', reason: "e' reduced, E/A > 0.8, but no abnormal supplemental findings.", criteria });
+                        else {
+                            if (v.suppSdReduced) criteria.push('Pulm Vein S/D ≤ 0.67'); if (v.suppLarsReduced) criteria.push('LARS ≤ 18%');
+                            if (v.suppLaviIncreased) criteria.push('LAVi > 34 mL/m²'); if (v.suppIvrtReduced) criteria.push('IVRT ≤ 70ms');
+                            if (v.eaRatio === 'ge2') displayResult({ grade: 'Grade 3', lap: 'Markedly Increased', reason: "e' reduced, E/A > 0.8, supplemental(s) positive, and E/A ≥ 2.", criteria });
+                            else displayResult({ grade: 'Grade 2', lap: 'Mild/Mod Increased', reason: "e' reduced, E/A > 0.8, and supplemental finding(s) are positive.", criteria });
                         }
                     }
                     return;
                 }
-                
-                if (abnormalParams === 1 || abnormalParams === 2) {
-                    supplementalCard.classList.remove('hidden');
-                     if (v.lars === null && v.pulmVeinSD === null && v.lavi === null && v.ivrt === null) {
-                        displayResult({ grade: 'Indeterminate', lap: 'Needs Further Data', reason: 'Core parameters are inconclusive. Supplemental data required.', criteria });
-                        return;
-                    }
-
-                    let sPC = 0;
-                    if (v.lars !== null && v.lars <= 18) { sPC++; criteria.push('LARS ≤ 18%'); }
-                    if (v.pulmVeinSD !== null && v.pulmVeinSD <= 0.67) { sPC++; criteria.push('S/D ≤ 0.67'); }
-                    if (v.lavi !== null && v.lavi > 34) { sPC++; criteria.push('LAVI > 34'); }
-                    if (v.ivrt !== null && v.ivrt <= 70) { sPC++; criteria.push('IVRT ≤ 70 ms'); }
-
-                    if (sPC >= 1) {
-                        if (eOverA === null) {
-                            displayResult({ grade: 'Indeterminate', lap: 'Increased (Grade TBD)', reason: 'Increased LAP suggested by positive supplementals, but E/A ratio needed for grading.', criteria, note: 'Please provide Mitral E and A wave velocities.' });
-                            return;
-                        }
-                        const grade = eOverA < 2 ? 'Grade 2' : 'Grade 3';
-                        const lap = eOverA < 2 ? 'Mild/Mod Increased' : 'Markedly Increased';
-                        displayResult({ grade, lap, reason: `Inconclusive core resolved by positive supplementals. E/A ratio (${eOverA.toFixed(2)}) determines grade.`, criteria });
-                    } else {
-                        displayResult({ grade: 'Normal DF', lap: 'Normal', reason: 'Inconclusive core parameters were not confirmed by supplemental findings.', criteria, note: 'If patient is symptomatic, consider diastolic exercise echo.' });
-                    }
-                    return;
+                supplementalCard.classList.remove('hidden');
+                const anySupp = v.suppSdReduced || v.suppLarsReduced || v.suppLaviIncreased || v.suppIvrtReduced;
+                if (!anySupp) displayResult({ grade: 'Normal Diastolic Function', lap: 'Normal', reason: 'Inconclusive core findings were not confirmed by any abnormal supplemental findings.', criteria, note: 'If patient is symptomatic, consider diastolic exercise echo.' });
+                else {
+                    if (v.suppSdReduced) criteria.push('Pulm Vein S/D ≤ 0.67'); if (v.suppLarsReduced) criteria.push('LARS ≤ 18%');
+                    if (v.suppLaviIncreased) criteria.push('LAVi > 34 mL/m²'); if (v.suppIvrtReduced) criteria.push('IVRT ≤ 70ms');
+                    if (v.eaRatio === 'unknown') displayResult({ grade: 'Indeterminate', lap: 'Increased (Grade TBD)', reason: 'Inconclusive core resolved by positive supplementals, but E/A ratio needed for grading.', criteria });
+                    else if (v.eaRatio === 'ge2') displayResult({ grade: 'Grade 3', lap: 'Markedly Increased', reason: 'Inconclusive core resolved by positive supplementals, and E/A ≥ 2.', criteria });
+                    else displayResult({ grade: 'Grade 2', lap: 'Mild/Mod Increased', reason: 'Inconclusive core findings resolved by positive supplemental finding(s).', criteria });
                 }
-                
-                displayResult({ grade: 'Indeterminate', reason: 'The provided combination of parameters does not lead to a clear conclusion with the standard algorithm.', criteria });
             };
-
             const calculateAfib = (v) => {
-                if (v.afibMitralE === null && v.afibSeptalEE === null && v.afibTR === null && v.afibDT === null) {
-                    displayResult({ grade: 'Indeterminate', reason: 'Please provide at least one core indicator for Atrial Fibrillation.', criteria:[] });
-                    return;
-                }
+                const suppCard = document.getElementById('afib-supplemental-card');
+                suppCard.classList.add('hidden');
                 let corePositive = 0; const criteria = [];
-                if(v.afibMitralE !== null && v.afibMitralE >= 100) { corePositive++; criteria.push('Mitral E velocity ≥ 100 cm/s'); }
-                if(v.afibSeptalEE !== null && v.afibSeptalEE > 11) { corePositive++; criteria.push('Septal E/e\' ratio > 11'); }
-                if(v.afibTR !== null && v.afibTR > 2.8) { corePositive++; criteria.push('TR velocity > 2.8 m/s'); }
-                if(v.afibDT !== null && v.afibDT <= 160) { corePositive++; criteria.push('DT ≤ 160 ms'); }
-                if (corePositive <= 1) { displayResult({ grade: 'Normal LAP', reason: '≤1 core AFib indicator positive.', criteria }); } 
-                else if (corePositive >= 3) { displayResult({ grade: 'Elevated LAP', reason: '≥3 core AFib indicators positive.', criteria }); } 
-                else { 
-                    if (v.afibLars === null && v.afibSD === null && v.afibBmi === null) {
-                        displayResult({ grade: 'Indeterminate', reason: '2 core indicators positive. Supplemental data required.', criteria });
-                        return;
-                    }
-                    let suppPositive = 0; 
-                    if(v.afibLars !== null && v.afibLars < 18) { suppPositive++; criteria.push('LARS < 18%'); } 
-                    if(v.afibSD !== null && v.afibSD < 1) { suppPositive++; criteria.push('S/D ratio < 1'); } 
-                    if(v.afibBmi !== null && v.afibBmi > 30) { suppPositive++; criteria.push('BMI > 30 kg/m²'); } 
-                    if(suppPositive === 0) { displayResult({ grade: 'Normal LAP', reason: '2 core indicators positive, 0 supplementals.', criteria }); } 
-                    else if (suppPositive === 1) { displayResult({ grade: 'Indeterminate', reason: '2 core positive, only 1 supplemental.', criteria }); } 
-                    else { displayResult({ grade: 'Elevated LAP', reason: '2 core positive, ≥2 supplementals.', criteria }); } 
+                if (v.afibEAbnormal) { corePositive++; criteria.push('Mitral E velocity ≥ 100 cm/s'); }
+                if (v.afibEeAbnormal) { corePositive++; criteria.push("Septal E/e' ratio > 11"); }
+                if (v.afibTrAbnormal) { corePositive++; criteria.push("TR velocity > 2.8 m/s"); }
+                if (v.afibDtAbnormal) { corePositive++; criteria.push("DT ≤ 160 ms"); }
+                if (corePositive <= 1) displayResult({ grade: 'Normal LAP', reason: '1 or fewer core AFib indicators are positive.', criteria });
+                else if (corePositive >= 3) displayResult({ grade: 'Elevated LAP', reason: '3 or more core AFib indicators are positive.', criteria });
+                else { // 2 core positive
+                    suppCard.classList.remove('hidden');
+                    let suppPositive = 0;
+                    if(v.afibLarsAbnormal) { suppPositive++; criteria.push("LARS < 18%"); }
+                    if(v.afibSdAbnormal) { suppPositive++; criteria.push("S/D ratio < 1"); }
+                    if(v.afibBmiAbnormal) { suppPositive++; criteria.push("BMI > 30 kg/m²"); }
+                    if(suppPositive === 0) displayResult({ grade: 'Normal LAP', reason: '2 core indicators positive, but 0 supplemental indicators positive.', criteria });
+                    else if(suppPositive === 1) displayResult({ grade: 'Indeterminate', reason: '2 core indicators positive, but only 1 supplemental indicator positive.', criteria });
+                    else displayResult({ grade: 'Elevated LAP', reason: '2 core indicators positive, and 2 or more supplemental indicators positive.', criteria });
                 }
             };
             const calculateMac = (v) => {
-                const eOverA = (v.macMitralE && v.macMitralA) ? v.macMitralE / v.macMitralA : null;
                 const ivrtWrapper = document.getElementById('mac-ivrt-wrapper');
-                if (eOverA === null) { displayResult({ grade: 'Indeterminate', reason: 'Mitral E and A velocities are required.', criteria: [] }); ivrtWrapper.classList.add('hidden'); return; }
-                const criteria = [`E/A Ratio: ${eOverA.toFixed(2)}`];
-                if (eOverA < 0.8) { displayResult({ grade: 'Normal LAP', reason: 'E/A ratio < 0.8.', criteria }); ivrtWrapper.classList.add('hidden'); } 
-                else if (eOverA > 1.8) { displayResult({ grade: 'Elevated LAP', reason: 'E/A ratio > 1.8.', criteria }); ivrtWrapper.classList.add('hidden'); } 
-                else { ivrtWrapper.classList.remove('hidden'); if (v.macIvrt === null) { displayResult({ grade: 'Indeterminate', reason: 'E/A is 0.8-1.8. IVRT is required.', criteria }); return; } criteria.push(`IVRT: ${v.macIvrt} ms`); if (v.macIvrt < 80) { displayResult({ grade: 'Elevated LAP', reason: 'E/A is 0.8-1.8 and IVRT < 80 ms.', criteria }); } else { displayResult({ grade: 'Normal LAP', reason: 'E/A is 0.8-1.8 and IVRT ≥ 80 ms.', criteria }); } }
+                const ea = document.querySelector('input[name="mac-ea-ratio"]:checked')?.value;
+                ivrtWrapper.classList.toggle('mid' === ea, ea === 'mid');
+                if (!ea) { displayResult({ grade: 'Indeterminate', reason: 'Please select an E/A ratio finding.' }); return; }
+                if (ea === 'lt08') displayResult({ grade: 'Normal LAP', reason: 'E/A ratio < 0.8.' });
+                else if (ea === 'gt18') displayResult({ grade: 'Elevated LAP', reason: 'E/A ratio > 1.8.' });
+                else {
+                    if (v.macIvrtAbnormal) displayResult({ grade: 'Elevated LAP', reason: 'E/A is 0.8-1.8 and IVRT < 80 ms.' });
+                    else displayResult({ grade: 'Normal LAP', reason: 'E/A is 0.8-1.8 and IVRT ≥ 80 ms.' });
+                }
             };
             const calculatePH = (v) => {
-                const eOverA = (v.phMitralE && v.phMitralA) ? v.phMitralE / v.phMitralA : null;
-                const suppWrapper = document.getElementById('ph-supplemental-wrapper'); const lateralWrapper = document.getElementById('ph-lateral-wrapper');
-                suppWrapper.classList.add('hidden'); lateralWrapper.classList.add('hidden');
-                if (eOverA === null || v.phMitralE === null) { displayResult({ grade: 'Indeterminate', reason: 'Mitral E/A ratio and E-wave velocity required.', criteria: []}); return; }
-                const criteria = [`E/A Ratio: ${eOverA.toFixed(2)}`, `E-wave: ${v.phMitralE} cm/s`];
-                if (eOverA <= 0.8 && v.phMitralE <= 50) { displayResult({ grade: 'Normal LAP', reason: 'E/A ≤ 0.8 and E ≤ 50 cm/s.', criteria}); }
-                else if (eOverA >= 2 && v.phEPrimeReduced) { criteria.push('e\' is reduced'); displayResult({ grade: 'Elevated LAP', reason: 'E/A ≥ 2 and e\' is reduced.', criteria}); }
-                else { // Middle ground
-                    suppWrapper.classList.remove('hidden');
-                    if (v.phLars !== null) {
-                        criteria.push(`LARS: ${v.phLars}%`);
-                        if (v.phLars > 18) { displayResult({ grade: 'Normal LAP', reason: 'Indeterminate E/A, LARS > 18%.', criteria}); }
-                        else { displayResult({ grade: 'Elevated LAP', reason: 'Indeterminate E/A, LARS ≤ 18%.', criteria}); }
-                    } else { // LARS not available
-                        lateralWrapper.classList.remove('hidden');
-                        if (v.phLateralEE !== null) {
-                           criteria.push(`Lateral E/e': ${v.phLateralEE}`);
-                           if (v.phLateralEE < 8) { displayResult({ grade: 'Normal LAP', reason: 'LARS unavailable, Lateral E/e\' < 8.', criteria}); }
-                           else if (v.phLateralEE > 13) { displayResult({ grade: 'Elevated LAP', reason: 'LARS unavailable, Lateral E/e\' > 13.', criteria}); }
-                           else { displayResult({ grade: 'Indeterminate', reason: 'LARS unavailable, Lateral E/e\' is 8-13.', criteria}); }
-                        } else { displayResult({ grade: 'Indeterminate', reason: 'Indeterminate E/A. LARS or Lateral E/e\' required.', criteria}); }
+                const path = document.querySelector('input[name="ph-path"]:checked')?.value;
+                const suppWrapper = document.getElementById('ph-supplemental-wrapper');
+                suppWrapper.classList.toggle('mid' === path, path === 'mid');
+                if (!path) { displayResult({ grade: 'Indeterminate', reason: 'Please select an initial finding.' }); return; }
+                if (path === 'normal') displayResult({ grade: 'Normal LAP', reason: 'E/A ≤ 0.8 and E ≤ 50 cm/s.' });
+                else if (path === 'elevated') displayResult({ grade: 'Elevated LAP', reason: 'E/A ≥ 2 and e\' is reduced.' });
+                else {
+                    const suppPath = document.querySelector('input[name="ph-supp-path"]:checked')?.value;
+                    if(!suppPath) { displayResult({ grade: 'Indeterminate', reason: 'For intermediate cases, please specify if LARS is available.'}); return; }
+                    if(suppPath === 'lars') {
+                        if (v.phLarsAbnormal) displayResult({ grade: 'Elevated LAP', reason: 'Intermediate E/A, with LARS ≤ 18%.' });
+                        else displayResult({ grade: 'Normal LAP', reason: 'Intermediate E/A, with LARS > 18%.' });
+                    } else { // ee path
+                        const eeRatio = document.querySelector('input[name="ph-ee-ratio"]:checked')?.value;
+                        if (!eeRatio) { displayResult({ grade: 'Indeterminate', reason: 'Please select a Lateral E/e\' finding.' }); return; }
+                        if (eeRatio === 'lt8') displayResult({ grade: 'Normal LAP', reason: 'LARS unavailable, Lateral E/e\' < 8.' });
+                        else if (eeRatio === 'gt13') displayResult({ grade: 'Elevated LAP', reason: 'LARS unavailable, Lateral E/e\' > 13.' });
+                        else displayResult({ grade: 'Indeterminate', reason: 'LARS unavailable, Lateral E/e\' is 8-13.' });
                     }
                 }
             };
             const calculateHTX = (v) => {
-                const suppWrapper = document.getElementById('htx-supplemental-wrapper'); const trWrapper = document.getElementById('htx-tr-wrapper');
-                suppWrapper.classList.add('hidden'); trWrapper.classList.add('hidden');
-                if (v.htxAvgEE === null) { displayResult({ grade: 'Indeterminate', reason: 'Average E/e\' ratio is required.', criteria: []}); return; }
-                const criteria = [`Average E/e': ${v.htxAvgEE}`];
-                if (v.htxAvgEE < 7) { displayResult({ grade: 'Normal LAP', reason: 'Average E/e\' < 7.', criteria}); }
-                else if (v.htxAvgEE > 14) { displayResult({ grade: 'Elevated LAP', reason: 'Average E/e\' > 14.', criteria}); }
-                else { // 7-14
-                    suppWrapper.classList.remove('hidden');
-                    if (v.htxEsrivr !== null) {
-                        criteria.push(`E/SRivr: ${v.htxEsrivr} cm`);
-                        if(v.htxEsrivr <= 200) { displayResult({ grade: 'Normal LAP', reason: 'Avg E/e\' is 7-14 and E/SRivr ≤ 200 cm.', criteria}); }
-                        else { displayResult({ grade: 'Elevated LAP', reason: 'Avg E/e\' is 7-14 and E/SRivr > 200 cm.', criteria}); }
-                    } else { // E/SRivr not available
-                        trWrapper.classList.remove('hidden');
-                        criteria.push('E/SRivr not measured');
-                        if (v.htxTr !== null) {
-                            criteria.push(`TR Velocity: ${v.htxTr} m/s`);
-                            if (v.htxTr <= 2.8) { displayResult({ grade: 'Normal LAP', reason: 'Avg E/e\' is 7-14, TR Vel ≤ 2.8 m/s.', criteria}); }
-                            else { displayResult({ grade: 'Elevated LAP', reason: 'Avg E/e\' is 7-14, TR Vel > 2.8 m/s.', criteria}); }
-                        } else {
-                             displayResult({ grade: 'Indeterminate', reason: 'Avg E/e\' is 7-14 and neither E/SRivr nor TR Velocity are available.', criteria});
-                        }
+                const path = document.querySelector('input[name="htx-ee"]:checked')?.value;
+                const suppWrapper = document.getElementById('htx-supplemental-wrapper');
+                suppWrapper.classList.toggle('mid' === path, path === 'mid');
+                if (!path) { displayResult({ grade: 'Indeterminate', reason: 'Please select an Average E/e\' finding.' }); return; }
+                if (path === 'lt7') displayResult({ grade: 'Normal LAP', reason: 'Average E/e\' < 7.' });
+                else if (path === 'gt14') displayResult({ grade: 'Elevated LAP', reason: 'Average E/e\' > 14.' });
+                else {
+                    const suppPath = document.querySelector('input[name="htx-supp-path"]:checked')?.value;
+                    if(!suppPath) { displayResult({ grade: 'Indeterminate', reason: 'For intermediate E/e\', please specify supplemental path.'}); return; }
+                    if(suppPath === 'esrivr') {
+                        if (v.htxEsrivrAbnormal) displayResult({ grade: 'Elevated LAP', reason: 'Avg E/e\' is 7-14 and E/SRivr > 200 cm.' });
+                        else displayResult({ grade: 'Normal LAP', reason: 'Avg E/e\' is 7-14 and E/SRivr ≤ 200 cm.' });
+                    } else { // tr path
+                        const trStatus = document.querySelector('input[name="htx-tr-status"]:checked')?.value;
+                        if (!trStatus) { displayResult({ grade: 'Indeterminate', reason: 'Please select a TR Velocity finding.' }); return; }
+                        if (trStatus === 'gt28') displayResult({ grade: 'Elevated LAP', reason: 'Avg E/e\' is 7-14 and TR Vel > 2.8 m/s.' });
+                        else if (trStatus === 'le28') displayResult({ grade: 'Normal LAP', reason: 'Avg E/e\' is 7-14 and TR Vel ≤ 2.8 m/s.' });
+                        else displayResult({ grade: 'Indeterminate', reason: 'Avg E/e\' is 7-14 and TR is absent or incomplete.' });
                     }
                 }
             };
 
-            const resetForm = () => {
-                clearInputs();
-                specialConditionSelect.value = 'none';
-                manageSections();
-            };
+            const resetForm = () => { clearInputs(); specialConditionSelect.value = 'none'; manageSections(); };
             
+            // --- Event Listeners ---
             manageSections();
             calculateBtn.addEventListener('click', calculateDiastology);
             resetBtn.addEventListener('click', resetForm);
+            
+            document.getElementById('mac-section').addEventListener('change', () => document.getElementById('mac-ivrt-wrapper').classList.toggle('hidden', !document.getElementById('mac-ea-mid').checked));
+            document.getElementById('ph-section').addEventListener('change', (e) => {
+                const path = document.querySelector('input[name="ph-path"]:checked')?.value;
+                document.getElementById('ph-supplemental-wrapper').classList.toggle('hidden', path !== 'mid');
+                const suppPath = document.querySelector('input[name="ph-supp-path"]:checked')?.value;
+                document.getElementById('ph-lars-wrapper').classList.toggle('hidden', suppPath !== 'lars');
+                document.getElementById('ph-ee-wrapper').classList.toggle('hidden', suppPath !== 'ee');
+            });
+             document.getElementById('htx-section').addEventListener('change', (e) => {
+                const path = document.querySelector('input[name="htx-ee"]:checked')?.value;
+                document.getElementById('htx-supplemental-wrapper').classList.toggle('hidden', path !== 'mid');
+                const suppPath = document.querySelector('input[name="htx-supp-path"]:checked')?.value;
+                document.getElementById('htx-esrivr-wrapper').classList.toggle('hidden', suppPath !== 'esrivr');
+                document.getElementById('htx-tr-wrapper').classList.toggle('hidden', suppPath !== 'tr');
+            });
+            document.getElementById('afib-section').addEventListener('change', () => {
+                let corePositive = 0;
+                if(document.getElementById('afib-e-abnormal').checked) corePositive++;
+                if(document.getElementById('afib-ee-abnormal').checked) corePositive++;
+                if(document.getElementById('afib-tr-abnormal').checked) corePositive++;
+                if(document.getElementById('afib-dt-abnormal').checked) corePositive++;
+                document.getElementById('afib-supplemental-card').classList.toggle('hidden', corePositive !== 2);
+            });
         });
     </script>
 </body>
