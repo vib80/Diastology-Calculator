@@ -69,9 +69,9 @@
                         <h2 class="text-xl font-semibold text-gray-700 mb-4 border-b pb-2">Step 1: Core Findings</h2>
                         <p class="text-sm text-gray-500 mb-4">Check all abnormal findings that apply.</p>
                         <div class="space-y-4">
-                            <div class="flex items-start"><input id="core-e-prime-reduced" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-e-prime-reduced" class="ml-3 block text-sm font-medium text-gray-700">Reduced e' velocity<span class="block text-xs text-gray-500 font-normal">septal ≤ 6, lateral ≤ 7, or avg ≤ 6.5 cm/s</span></label></div>
-                            <div class="flex items-start"><input id="core-ee-increased" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-ee-increased" class="ml-3 block text-sm font-medium text-gray-700">Increased E/e' ratio<span class="block text-xs text-gray-500 font-normal">septal ≥ 15, lateral ≥ 13, or avg ≥ 14</span></label></div>
-                            <div class="flex items-start"><input id="core-tr-increased" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-tr-increased" class="ml-3 block text-sm font-medium text-gray-700">Increased TR velocity<span class="block text-xs text-gray-500 font-normal">≥ 2.8 m/s or PASP ≥ 35 mm Hg</span></label></div>
+                            <div class="flex items-start"><input id="core-e-prime-reduced" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-e-prime-reduced" class="ml-3 block text-sm font-bold text-gray-700">Reduced e' velocity (septal ≤ 6, lateral ≤ 7, or avg ≤ 6.5 cm/s)</label></div>
+                            <div class="flex items-start"><input id="core-ee-increased" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-ee-increased" class="ml-3 block text-sm font-bold text-gray-700">Increased E/e' ratio (septal ≥ 15, lateral ≥ 13, or avg ≥ 14)</label></div>
+                            <div class="flex items-start"><input id="core-tr-increased" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"><label for="core-tr-increased" class="ml-3 block text-sm font-bold text-gray-700">Increased TR velocity (≥ 2.8 m/s or PASP ≥ 35 mm Hg)</label></div>
                         </div>
                          <div class="mt-6 pt-4 border-t">
                             <h3 class="text-lg font-semibold text-gray-700 mb-3">E/A Ratio (for grading)</h3>
@@ -148,7 +148,6 @@
             </div>
 
             <div class="mt-8 text-center">
-                <button id="calculate-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">Calculate</button>
                 <button id="reset-btn" class="bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-lg hover:bg-gray-300 ml-4 transition duration-150 ease-in-out">Reset</button>
             </div>
 
@@ -159,7 +158,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const specialConditionSelect = document.getElementById('special-condition');
-            const calculateBtn = document.getElementById('calculate-btn');
             const resetBtn = document.getElementById('reset-btn');
             const resultContainer = document.getElementById('result-container');
             const supplementalCard = document.getElementById('supplemental-card');
@@ -179,7 +177,10 @@
                 resultContainer.innerHTML = '';
                 Object.values(sections).forEach(s => s.classList.add('hidden'));
                 if (sections.special) Array.from(sections.special.children).forEach(child => child.classList.add('hidden'));
-                calculateBtn.classList.toggle('hidden', infoOnlyConditions.includes(selected));
+                
+                // The calculate button is removed, so we don't need to toggle it.
+                // calculateBtn.classList.toggle('hidden', infoOnlyConditions.includes(selected));
+
                 if (selected === 'none') sections.standard.classList.remove('hidden');
                 else {
                     sections.special.classList.remove('hidden');
@@ -204,7 +205,7 @@
                 document.getElementById('htx-tr-wrapper').classList.add('hidden');
             };
 
-            specialConditionSelect.addEventListener('change', () => { clearInputs(); manageSections(); });
+            specialConditionSelect.addEventListener('change', () => { clearInputs(); manageSections(); calculateDiastology(); });
             
             const getValues = () => {
                 return {
@@ -238,6 +239,10 @@
 
             const calculateDiastology = () => {
                 const condition = specialConditionSelect.value;
+                if (infoOnlyConditions.includes(condition)) {
+                    resultContainer.innerHTML = ''; // Clear results for info-only sections
+                    return;
+                }
                 const v = getValues();
                 const eaRatio = document.querySelector('input[name="ea-ratio"]:checked')?.value;
                 switch (condition) {
@@ -255,7 +260,13 @@
                 let abnormalParams = 0;
                 if (v.coreEPrimeReduced) { abnormalParams++; criteria.push("Reduced e' velocity"); }
                 if (v.coreEeIncreased) { abnormalParams++; criteria.push("Increased E/e' ratio"); }
-                if (v.coreTrIncreased) { abnormalParams++; criteria.push("Increased TR velocity"); }
+                if (v.coreTrIncreased) { abnormalParams++; criteria.push("Increased TR velocity (≥ 2.8 m/s or PASP ≥ 35 mm Hg)"); }
+
+                if (abnormalParams === 0) {
+                    // This is the initial state or when no boxes are checked.
+                    displayResult({ grade: 'Normal Diastolic Function', lap: 'Normal', reason: 'No abnormal core parameters were selected.', criteria: [] });
+                    return;
+                }
 
                 if (abnormalParams >= 3) {
                     if (v.eaRatio === 'ge2') displayResult({ grade: 'Grade 3', lap: 'Markedly Increased', reason: 'All 3 core parameters are abnormal and E/A ratio is ≥ 2.', criteria });
@@ -263,10 +274,7 @@
                     else displayResult({ grade: 'Grade 2', lap: 'Mild/Mod Increased', reason: 'All 3 core parameters are abnormal.', criteria });
                     return;
                 }
-                if (abnormalParams === 0) {
-                    displayResult({ grade: 'Normal Diastolic Function', lap: 'Normal', reason: 'No abnormal core parameters were selected.', criteria: ['All core parameters normal'] });
-                    return;
-                }
+                
                 if (abnormalParams === 1 && v.coreEPrimeReduced) {
                     if (v.eaRatio === 'le08') displayResult({ grade: 'Grade 1', lap: 'Normal', reason: "Only e' is reduced and E/A ratio is ≤ 0.8.", criteria });
                     else if (v.eaRatio === 'unknown') displayResult({ grade: 'Indeterminate', reason: "Only e' is reduced. E/A ratio is required to proceed.", criteria });
@@ -285,7 +293,7 @@
                 }
                 supplementalCard.classList.remove('hidden');
                 const anySupp = v.suppSdReduced || v.suppLarsReduced || v.suppLaviIncreased || v.suppIvrtReduced;
-                if (!anySupp) displayResult({ grade: 'Normal Diastolic Function', lap: 'Normal', reason: 'Inconclusive core findings were not confirmed by any abnormal supplemental findings.', criteria, note: 'If patient is symptomatic, consider diastolic exercise echo.' });
+                if (!anySupp) displayResult({ grade: 'Grade 1', lap: 'Normal', reason: 'Inconclusive core findings were not confirmed by any abnormal supplemental findings, indicating Grade 1 Diastolic Dysfunction.', criteria, note: 'If patient is symptomatic, consider diastolic exercise echo.' });
                 else {
                     if (v.suppSdReduced) criteria.push('Pulm Vein S/D ≤ 0.67'); if (v.suppLarsReduced) criteria.push('LARS ≤ 18%');
                     if (v.suppLaviIncreased) criteria.push('LAVi > 34 mL/m²'); if (v.suppIvrtReduced) criteria.push('IVRT ≤ 70ms');
@@ -298,10 +306,18 @@
                 const suppCard = document.getElementById('afib-supplemental-card');
                 suppCard.classList.add('hidden');
                 let corePositive = 0; const criteria = [];
+                const anyCoreChecked = v.afibEAbnormal || v.afibEeAbnormal || v.afibTrAbnormal || v.afibDtAbnormal;
+
+                if (!anyCoreChecked) {
+                    displayResult({ grade: 'Normal LAP', reason: 'No abnormal core findings selected.' });
+                    return;
+                }
+
                 if (v.afibEAbnormal) { corePositive++; criteria.push('Mitral E velocity ≥ 100 cm/s'); }
                 if (v.afibEeAbnormal) { corePositive++; criteria.push("Septal E/e' ratio > 11"); }
                 if (v.afibTrAbnormal) { corePositive++; criteria.push("TR velocity > 2.8 m/s"); }
                 if (v.afibDtAbnormal) { corePositive++; criteria.push("DT ≤ 160 ms"); }
+
                 if (corePositive <= 1) displayResult({ grade: 'Normal LAP', reason: '1 or fewer core AFib indicators are positive.', criteria });
                 else if (corePositive >= 3) displayResult({ grade: 'Elevated LAP', reason: '3 or more core AFib indicators are positive.', criteria });
                 else { // 2 core positive
@@ -319,7 +335,7 @@
                 const ivrtWrapper = document.getElementById('mac-ivrt-wrapper');
                 const ea = document.querySelector('input[name="mac-ea-ratio"]:checked')?.value;
                 ivrtWrapper.classList.toggle('mid' === ea, ea === 'mid');
-                if (!ea) { displayResult({ grade: 'Indeterminate', reason: 'Please select an E/A ratio finding.' }); return; }
+                if (!ea) { displayResult({ grade: 'Indeterminate LAP', reason: 'No E/A ratio finding selected.' }); return; }
                 if (ea === 'lt08') displayResult({ grade: 'Normal LAP', reason: 'E/A ratio < 0.8.' });
                 else if (ea === 'gt18') displayResult({ grade: 'Elevated LAP', reason: 'E/A ratio > 1.8.' });
                 else {
@@ -331,7 +347,7 @@
                 const path = document.querySelector('input[name="ph-path"]:checked')?.value;
                 const suppWrapper = document.getElementById('ph-supplemental-wrapper');
                 suppWrapper.classList.toggle('mid' === path, path === 'mid');
-                if (!path) { displayResult({ grade: 'Indeterminate', reason: 'Please select an initial finding.' }); return; }
+                if (!path) { displayResult({ grade: 'Indeterminate LAP', reason: 'Please select an initial finding.' }); return; }
                 if (path === 'normal') displayResult({ grade: 'Normal LAP', reason: 'E/A ≤ 0.8 and E ≤ 50 cm/s.' });
                 else if (path === 'elevated') displayResult({ grade: 'Elevated LAP', reason: 'E/A ≥ 2 and e\' is reduced.' });
                 else {
@@ -353,7 +369,7 @@
                 const path = document.querySelector('input[name="htx-ee"]:checked')?.value;
                 const suppWrapper = document.getElementById('htx-supplemental-wrapper');
                 suppWrapper.classList.toggle('mid' === path, path === 'mid');
-                if (!path) { displayResult({ grade: 'Indeterminate', reason: 'Please select an Average E/e\' finding.' }); return; }
+                if (!path) { displayResult({ grade: 'Indeterminate LAP', reason: 'Please select an Average E/e\' finding.' }); return; }
                 if (path === 'lt7') displayResult({ grade: 'Normal LAP', reason: 'Average E/e\' < 7.' });
                 else if (path === 'gt14') displayResult({ grade: 'Elevated LAP', reason: 'Average E/e\' > 14.' });
                 else {
@@ -372,12 +388,21 @@
                 }
             };
 
-            const resetForm = () => { clearInputs(); specialConditionSelect.value = 'none'; manageSections(); };
+            const resetForm = () => { 
+                clearInputs();  
+                manageSections(); 
+                calculateDiastology();
+            };
             
             // --- Event Listeners ---
             manageSections();
-            calculateBtn.addEventListener('click', calculateDiastology);
             resetBtn.addEventListener('click', resetForm);
+
+            // Add event listeners for automatic calculation on any input change
+            const allInteractiveInputs = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+            allInteractiveInputs.forEach(input => {
+                input.addEventListener('change', calculateDiastology);
+            });
             
             document.getElementById('mac-section').addEventListener('change', () => document.getElementById('mac-ivrt-wrapper').classList.toggle('hidden', !document.getElementById('mac-ea-mid').checked));
             document.getElementById('ph-section').addEventListener('change', (e) => {
@@ -402,8 +427,13 @@
                 if(document.getElementById('afib-dt-abnormal').checked) corePositive++;
                 document.getElementById('afib-supplemental-card').classList.toggle('hidden', corePositive !== 2);
             });
+
+            // Initial calculation on page load
+            calculateDiastology();
         });
     </script>
 </body>
 </html>
+
+
 
