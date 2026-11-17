@@ -1,17 +1,83 @@
 import {
-  AR_SUPPORTIVE_FINDINGS,
-  CONSTRICTION_CRITERIA,
   DISCLAIMER,
   TABLE7,
   assessAfib,
-  assessConductionTr,
   assessHtx,
   assessMac,
   assessPh,
-  assessStandard,
-  assessTeer,
-  listIndicators,
 } from "./diastology.js";
+
+function gradeStandard(input) {
+  const abnormal = [input.eReduced, input.eeIncreased, input.trIncreased].filter(Boolean).length;
+  const criteria = [];
+  if (input.eReduced) criteria.push("Reduced e' velocity");
+  if (input.eeIncreased) criteria.push("Increased E/e' ratio");
+  if (input.trIncreased) criteria.push("TR velocity ≥ 2.8 m/s or PASP ≥ 35 mm Hg");
+  const finish = (base) => ({ note: null, figure: "Figure 3", indeterminate: false, criteria, ...base });
+  const byEa = (lead) => {
+    if (input.eaBand === "ge2") {
+      return finish({ grade: "Grade 3", lap: "Marked increase", reason: `${lead} E/A is ≥ 2.` });
+    }
+    if (input.eaBand === "le08" || input.eaBand === "mid") {
+      return finish({ grade: "Grade 2", lap: "Mild to moderate increase", reason: `${lead} E/A is < 2.` });
+    }
+    return finish({
+      grade: "Indeterminate grade",
+      lap: "Increased",
+      reason: `${lead} E/A is needed to separate grade 2 from grade 3.`,
+      indeterminate: true,
+    });
+  };
+
+  if (abnormal === 0) {
+    return finish({
+      grade: "Normal diastolic function",
+      lap: "Normal",
+      reason: "e', E/e', and TR velocity or PASP are not increased.",
+    });
+  }
+  if (abnormal === 3) return byEa("All three core findings are abnormal.");
+  if (abnormal === 1 && input.eReduced && input.eaBand === "le08") {
+    return finish({
+      grade: "Grade 1",
+      lap: "Normal",
+      reason: "Only e' is reduced, and E/A is ≤ 0.8.",
+      criteria: [...criteria, "E/A ≤ 0.8"],
+    });
+  }
+  if (abnormal === 1 && input.eReduced && (!input.eaBand || input.eaBand === "unknown")) {
+    return finish({
+      grade: "Indeterminate",
+      lap: null,
+      reason: "Only e' is reduced. Choose E/A: ≤ 0.8 is grade 1, and a higher E/A uses the second-stage findings.",
+      indeterminate: true,
+    });
+  }
+  const supp = [];
+  if (input.larsLow) supp.push("LARS ≤ 18%");
+  if (input.sdLow) supp.push("Pulmonary vein S/D ≤ 0.67");
+  if (input.laviHigh) supp.push("LAVi > 34 mL/m²");
+  if (input.ivrtShort) supp.push("IVRT ≤ 70 ms");
+  if (supp.length === 0) {
+    return finish({
+      grade: "Normal LAP",
+      lap: "Normal",
+      reason: "The core findings do not establish elevated LAP, and the second-stage findings are not abnormal. This is not grade 1.",
+    });
+  }
+  const graded = byEa("A second-stage finding is abnormal.");
+  graded.criteria = [...criteria, ...supp];
+  return graded;
+}
+
+function needsSecond(input) {
+  const abnormal = [input.eReduced, input.eeIncreased, input.trIncreased].filter(Boolean).length;
+  if (abnormal === 0 || abnormal === 3) return false;
+  if (abnormal === 1 && input.eReduced && (input.eaBand === "le08" || !input.eaBand || input.eaBand === "unknown")) {
+    return false;
+  }
+  return true;
+}
 
 function phIntermediate(input, base) {
   if (input.phLars === "unavailable") {
@@ -25,46 +91,14 @@ const SCENARIOS = [
   {
     id: "standard",
     label: "Sinus rhythm, standard algorithm",
-    source: "Figure 3, with Figure 2 shown alongside. Not for severe primary MR, any mitral stenosis, moderate or severe MAC, mitral repair, replacement, or TEER, atrial fibrillation, LVAD, noncardiac pulmonary hypertension, heart transplant, or pericardial constriction.",
-    evaluate(input) {
-      const secondMissing = input.secondMissing === true;
-      const age = input.ageBand === "young" ? 30 : input.ageBand === "midage" ? 50 : input.ageBand === "older" ? 70 : null;
-      return assessStandard({
-        septalEPrime: input.eReduced ? 6 : 8,
-        lateralEPrime: input.eReduced ? 6 : 10,
-        averageEe: input.eeIncreased ? 14 : 8,
-        tr: input.trIncreased ? 2.8 : 2.2,
-        pasp: input.paspIncreased ? 35 : null,
-        ea: input.eaBand === "le08" ? 0.8 : input.eaBand === "mid" ? 1.2 : input.eaBand === "ge2" ? 2 : null,
-        lvef: input.glsNormal ? "preserved" : input.lvef || null,
-        ageSpecific: input.ageSpecific === true,
-        age,
-        lars: secondMissing ? null : input.larsLow ? 18 : 25,
-        lavi: secondMissing ? null : input.laviHigh ? 35 : 30,
-        sd: secondMissing ? null : input.sdLow ? 0.67 : 1.2,
-        ivrt: secondMissing ? null : input.ivrtShort ? 70 : 90,
-        significantMr: input.significantMr === true,
-        laStunning: input.laStunning === true,
-        gls: input.glsNormal ? 19 : null,
-        prEdv: input.prHigh ? 2 : null,
-        padp: input.padpHigh ? 16 : null,
-        lWave: input.lWaveHigh ? 50 : null,
-        arMinusA: input.arALong ? 31 : null,
-        valsalvaEaDecreasePct: input.valsalvaPositive ? 50 : null,
-        sex: input.massSex || null,
-        lvMassIndex: input.massHigh ? (input.massSex === "male" ? 116 : 96) : null,
-      });
-    },
+    source: "Figure 3. Do not use this path for severe primary MR, any mitral stenosis, moderate or severe MAC, atrial fibrillation, LVAD, noncardiac pulmonary hypertension, heart transplant, or pericardial constriction.",
+    evaluate: gradeStandard,
     fields: [
-      {
-        type: "note",
-        html: "Check each abnormal finding that is present. An unchecked box means that finding is absent, not missing.",
-      },
+      { type: "note", html: "Check each abnormal finding. Leave it unchecked when that finding is absent." },
       { type: "heading", text: "Core findings" },
       { type: "check", name: "eReduced", label: "Reduced e' (septal ≤ 6, lateral ≤ 7, or average ≤ 6.5 cm/s)" },
       { type: "check", name: "eeIncreased", label: "Increased E/e' (septal ≥ 15, lateral ≥ 13, or average ≥ 14)" },
-      { type: "check", name: "trIncreased", label: "TR velocity ≥ 2.8 m/s" },
-      { type: "check", name: "paspIncreased", label: "PASP ≥ 35 mm Hg (use this instead of TR when RAP was estimated)" },
+      { type: "check", name: "trIncreased", label: "TR velocity ≥ 2.8 m/s or PASP ≥ 35 mm Hg" },
       {
         type: "radios",
         name: "eaBand",
@@ -76,101 +110,41 @@ const SCENARIOS = [
           ["ge2", "E/A ≥ 2"],
         ],
       },
-      {
-        type: "radios",
-        name: "lvef",
-        label: "LVEF",
-        options: [
-          ["", "Not specified", true],
-          ["reduced", "Reduced (< 50%)"],
-          ["preserved", "Preserved (≥ 50%)"],
-        ],
-      },
-      { type: "heading", text: "Second-stage findings" },
-      {
-        type: "note",
-        html: "Use these when the core findings disagree, or when e' is the only abnormality and E/A is above 0.8.",
-      },
-      { type: "check", name: "larsLow", label: "LARS ≤ 18%" },
-      { type: "check", name: "sdLow", label: "Pulmonary vein S/D ≤ 0.67" },
-      { type: "check", name: "laviHigh", label: "LAVi > 34 mL/m²" },
-      { type: "check", name: "ivrtShort", label: "IVRT ≤ 70 ms" },
-      { type: "check", name: "secondMissing", label: "These second-stage measurements were not obtained" },
-      { type: "check", name: "significantMr", label: "Significant mitral regurgitation (do not use LARS)" },
-      { type: "check", name: "laStunning", label: "Suspected LA stunning (do not use LARS)" },
-      { type: "check", name: "glsNormal", label: "Preserved EF and GLS > 18% (do not use LARS)" },
-      {
-        type: "details-start",
-        summary: "Supplemental methods and age-specific limits",
-      },
-      { type: "check", name: "prHigh", label: "PR end-diastolic velocity ≥ 2 m/s" },
-      { type: "check", name: "padpHigh", label: "PA diastolic pressure ≥ 16 mm Hg" },
-      { type: "check", name: "lWaveHigh", label: "Mitral L-wave ≥ 50 cm/s" },
-      { type: "check", name: "arALong", label: "Ar−A duration > 30 ms" },
-      { type: "check", name: "valsalvaPositive", label: "Valsalva lowers E/A by ≥ 50%" },
-      { type: "check", name: "ageSpecific", label: "Use age-specific e' and E/A limits" },
-      {
-        type: "radios",
-        name: "ageBand",
-        label: "Age band",
-        show: "ageSpecific:true",
-        options: [
-          ["young", "20–39 years"],
-          ["midage", "40–65 years"],
-          ["older", "> 65 years"],
-        ],
-      },
-      {
-        type: "radios",
-        name: "massSex",
-        label: "LV mass index above the Figure 2 limit",
-        options: [
-          ["", "Not used", true],
-          ["female", "Woman, LV mass index > 95 g/m²"],
-          ["male", "Man, LV mass index > 115 g/m²"],
-        ],
-      },
-      { type: "check", name: "massHigh", label: "LV mass index is above that limit", show: "massSex:female|male" },
-      { type: "details-end" },
+      { type: "heading", text: "Second-stage findings", show: "needSecond:yes" },
+      { type: "check", name: "larsLow", label: "LARS ≤ 18%", show: "needSecond:yes" },
+      { type: "check", name: "sdLow", label: "Pulmonary vein S/D ≤ 0.67", show: "needSecond:yes" },
+      { type: "check", name: "laviHigh", label: "LAVi > 34 mL/m²", show: "needSecond:yes" },
+      { type: "check", name: "ivrtShort", label: "IVRT ≤ 70 ms", show: "needSecond:yes" },
     ],
   },
   {
     id: "afib",
     label: "Atrial fibrillation",
-    source: "Figure 8. Average several cycles at a representative rate. Table 7 lists additional indicators that are not branches of Figure 8.",
+    source: "Figure 8. Average several cycles at a usual rate.",
     evaluate(input) {
       const positive = ["afibE", "afibEe", "afibTr", "afibDt"].filter((key) => input[key]).length;
-      const sendSupp = positive === 2 && input.suppMissing !== true;
-      return assessAfib({
+      const report = assessAfib({
         e: input.afibE ? 100 : 80,
         septalEe: input.afibEe ? 11.1 : 10,
         tr: input.afibTr ? 2.81 : 2.5,
         dt: input.afibDt ? 160 : 180,
-        lvef: input.lvefReduced ? "reduced" : input.lvefPreserved ? "preserved" : null,
-        lars: sendSupp ? (input.afibLars ? 17.9 : 20) : null,
-        sd: sendSupp ? (input.afibSd ? 0.9 : 1.1) : null,
-        bmi: sendSupp ? (input.afibBmi ? 31 : 28) : null,
+        lars: positive === 2 ? (input.afibLars ? 17.9 : 20) : null,
+        sd: positive === 2 ? (input.afibSd ? 0.9 : 1.1) : null,
+        bmi: positive === 2 ? (input.afibBmi ? 31 : 28) : null,
       });
+      return { ...report, note: null };
     },
     fields: [
-      { type: "note", html: "Check the abnormal findings. Unchecked means that finding is absent." },
+      { type: "note", html: "Check the abnormal findings. Leave a box unchecked when that finding is absent." },
       { type: "heading", text: "Core findings" },
       { type: "check", name: "afibE", label: "Mitral E velocity ≥ 100 cm/s" },
       { type: "check", name: "afibEe", label: "Septal E/e' > 11" },
       { type: "check", name: "afibTr", label: "TR velocity > 2.8 m/s or PASP > 35 mm Hg" },
       { type: "check", name: "afibDt", label: "Deceleration time ≤ 160 ms" },
-      { type: "check", name: "lvefPreserved", label: "LVEF is preserved (adds the Table 7 note about DT)" },
       { type: "heading", text: "Supplemental findings", show: "afibCore:2" },
-      {
-        type: "note",
-        show: "afibCore:2",
-        html: "Figure 8 asks for these only when exactly two core findings are positive.",
-      },
       { type: "check", name: "afibLars", label: "LARS < 18%", show: "afibCore:2" },
       { type: "check", name: "afibSd", label: "Pulmonary vein S/D < 1", show: "afibCore:2" },
       { type: "check", name: "afibBmi", label: "BMI > 30 kg/m²", show: "afibCore:2" },
-      { type: "check", name: "suppMissing", label: "Supplemental measurements were not obtained", show: "afibCore:2" },
-      { type: "list", title: "Other Table 7 atrial-fibrillation indicators, not scored", items: TABLE7.afib },
     ],
   },
   {
@@ -179,7 +153,7 @@ const SCENARIOS = [
     source: "Figure 4 and Table 7. Mild MAC is not this algorithm.",
     evaluate(input) {
       const ea = input.macEa === "low" ? 0.7 : input.macEa === "mid" ? 1.2 : input.macEa === "high" ? 1.9 : null;
-      const ivrt = input.macEa !== "mid" ? null : input.macIvrtMissing ? null : input.macIvrtShort ? 70 : 80;
+      const ivrt = input.macEa !== "mid" ? null : input.macIvrtShort ? 70 : 80;
       return assessMac({ ea, ivrt });
     },
     fields: [
@@ -194,7 +168,6 @@ const SCENARIOS = [
         ],
       },
       { type: "check", name: "macIvrtShort", label: "IVRT < 80 ms", show: "macEa:mid" },
-      { type: "check", name: "macIvrtMissing", label: "IVRT was not measured", show: "macEa:mid" },
     ],
   },
   {
@@ -202,14 +175,10 @@ const SCENARIOS = [
     label: "Pulmonary hypertension (not left-heart group II as the starting point)",
     source: "Figure 6. Group II pulmonary hypertension from left-heart disease is estimated with the standard algorithm instead.",
     evaluate(input) {
-      if (input.phPath === "normal") return assessPh({ ea: 0.8, e: 50 });
-      if (input.phPath === "lowE") {
-        return assessPh(phIntermediate(input, { ea: 0.8, e: 60 }));
-      }
-      if (input.phPath === "mid") return assessPh(phIntermediate(input, { ea: 1.2 }));
-      if (input.phPath === "highReduced") return assessPh({ ea: 2, septalEPrime: 5, lateralEPrime: 10 });
-      if (input.phPath === "highPreserved") return assessPh({ ea: 2, septalEPrime: 8, lateralEPrime: 10 });
-      return assessPh({});
+      if (input.phPath === "normal") return { ...assessPh({ ea: 0.8, e: 50 }), note: null };
+      if (input.phPath === "mid") return { ...assessPh(phIntermediate(input, { ea: 1.2, e: 60 })), note: null };
+      if (input.phPath === "high") return { ...assessPh({ ea: 2, septalEPrime: 5, lateralEPrime: 10 }), note: null };
+      return { ...assessPh({}), note: null };
     },
     fields: [
       { type: "note", html: "Lateral E/e' is the annulus used here. Septal flattening can lower septal e'." },
@@ -219,35 +188,32 @@ const SCENARIOS = [
         label: "Mitral filling",
         options: [
           ["normal", "E/A ≤ 0.8 and E ≤ 50 cm/s"],
-          ["lowE", "E/A ≤ 0.8 and E > 50 cm/s"],
-          ["mid", "E/A > 0.8 and < 2"],
-          ["highReduced", "E/A ≥ 2 and e' is reduced"],
-          ["highPreserved", "E/A ≥ 2 and e' is not reduced"],
+          ["high", "E/A ≥ 2 and e' is reduced"],
+          ["mid", "Neither of the above"],
         ],
       },
       {
         type: "radios",
         name: "phLars",
         label: "LARS",
-        show: "phPath:lowE|mid",
+        show: "phPath:mid",
         options: [
           ["available", "LARS was measured", true],
           ["unavailable", "LARS was not measured"],
         ],
       },
-      { type: "check", name: "phLarsLow", label: "LARS ≤ 18%", show: "phPath:lowE|mid;phLars:available" },
+      { type: "check", name: "phLarsLow", label: "LARS ≤ 18%", show: "phPath:mid;phLars:available" },
       {
         type: "radios",
         name: "phEe",
         label: "Lateral E/e'",
-        show: "phPath:lowE|mid;phLars:unavailable",
+        show: "phPath:mid;phLars:unavailable",
         options: [
           ["low", "Lateral E/e' < 8"],
           ["mid", "Lateral E/e' 8 to 13"],
           ["high", "Lateral E/e' > 13"],
         ],
       },
-      { type: "list", title: "Table 7 wording, which is not identical to Figure 6", items: TABLE7.ph },
     ],
   },
   {
@@ -256,12 +222,12 @@ const SCENARIOS = [
     source: "Figure 5 and Table 7. An E/A ≥ 2 with preserved EF is common early after transplant and is not itself elevated LAP.",
     evaluate(input) {
       const averageEe = input.htxEe === "low" ? 6.9 : input.htxEe === "mid" ? 10 : input.htxEe === "high" ? 14.1 : null;
-      if (input.htxEe !== "mid") return assessHtx({ averageEe });
+      if (input.htxEe !== "mid") return { ...assessHtx({ averageEe }), note: null };
       if (input.htxSr === "available") {
-        return assessHtx({ averageEe, eSrIvr: input.htxSrHigh ? 201 : 200 });
+        return { ...assessHtx({ averageEe, eSrIvr: input.htxSrHigh ? 201 : 200 }), note: null };
       }
       const tr = input.htxTr === "high" ? 2.81 : input.htxTr === "low" ? 2.8 : null;
-      return assessHtx({ averageEe, tr });
+      return { ...assessHtx({ averageEe, tr }), note: null };
     },
     fields: [
       {
@@ -298,105 +264,12 @@ const SCENARIOS = [
       },
     ],
   },
-  {
-    id: "teer",
-    label: "After TEER or another interatrial shunt",
-    source: "Section 15.A. LAP (mm Hg) = 4V² + RAP. Velocity > 1.7 m/s usually means LAP is elevated, except in biventricular heart failure.",
-    evaluate(input) {
-      const rap = { r3: 3, r5: 5, r10: 10, r15: 15 }[input.teerRap] ?? null;
-      const velocity = input.teerV === "high" ? 1.8 : input.teerV === "low" ? 1.2 : null;
-      return assessTeer({ velocity, rap, biventricularHf: input.biventricularHf === true });
-    },
-    fields: [
-      {
-        type: "radios",
-        name: "teerV",
-        label: "Peak transseptal velocity",
-        options: [
-          ["low", "Velocity ≤ 1.7 m/s"],
-          ["high", "Velocity > 1.7 m/s"],
-        ],
-      },
-      {
-        type: "radios",
-        name: "teerRap",
-        label: "RAP",
-        options: [
-          ["r3", "3 mm Hg"],
-          ["r5", "5 mm Hg"],
-          ["r10", "10 mm Hg"],
-          ["r15", "15 mm Hg"],
-        ],
-      },
-      { type: "check", name: "biventricularHf", label: "Biventricular heart failure (velocity is not reliable)" },
-    ],
-  },
-  {
-    id: "conduction",
-    label: "AV block, bundle branch block, or ventricular pacing",
-    source: "Section 15.D. E/e' is less accurate with LBBB, RV pacing, and CRT. If mitral inflow is only an A wave, TR velocity > 2.8 m/s is the stated indicator.",
-    evaluate(input) {
-      const tr = input.condTr === "high" ? 2.81 : input.condTr === "low" ? 2.8 : null;
-      return assessConductionTr({ tr });
-    },
-    fields: [
-      {
-        type: "note",
-        html: "Fusion of E and A from a long PR interval can imitate impaired relaxation. The variables remain usable when E and A are not fused. This entry applies when only a mitral A wave is present.",
-      },
-      {
-        type: "radios",
-        name: "condTr",
-        label: "TR velocity",
-        options: [
-          ["high", "TR velocity > 2.8 m/s"],
-          ["low", "TR velocity ≤ 2.8 m/s"],
-          ["missing", "TR was not measured"],
-        ],
-      },
-    ],
-  },
-  infoScenario("hcm", "Hypertrophic cardiomyopathy", "Table 7. These are indicators, not a count that equals elevated LAP.", TABLE7.hcm),
+  infoScenario("hcm", "Hypertrophic cardiomyopathy", "Table 7. Findings associated with elevated LV filling pressure.", TABLE7.hcm),
   infoScenario("rcm", "Restrictive cardiomyopathy", "Table 7, plus the narrative description of advanced restrictive physiology.", TABLE7.rcm),
   infoScenario("lvad", "LV assist device", "Table 7, including the interatrial-septum pressure relationship.", TABLE7.lvad),
   infoScenario("tachy", "Sinus tachycardia", "Table 7.", TABLE7.tachycardia),
   infoScenario("mr", "Mitral regurgitation", "Table 7. The standard algorithm is not for severe primary MR.", TABLE7.mr),
   infoScenario("ms", "Mitral stenosis", "Table 7. Any mitral stenosis excludes the standard algorithm.", TABLE7.ms),
-  infoScenario(
-    "constriction",
-    "Pericardial constriction",
-    "Section 15.F. Figure 7 is the Mayo constriction-versus-restriction algorithm. The text gives these criteria and does not print a numeric point score, so none is invented here.",
-    CONSTRICTION_CRITERIA,
-  ),
-  {
-    id: "as",
-    label: "Aortic stenosis",
-    source: "Section 15.A.e. Diastolic function should be reported in aortic stenosis.",
-    evaluate() {
-      return {
-        grade: "Use the standard algorithm",
-        lap: null,
-        reason:
-          "The sinus-rhythm algorithm applies regardless of aortic stenosis severity. If moderate or severe MAC is also present, use the MAC algorithm instead.",
-        criteria: [],
-        note: null,
-        figure: "Section 15.A.e",
-        indeterminate: false,
-      };
-    },
-    fields: [
-      {
-        type: "note",
-        html: "There is no separate aortic-stenosis decision tree. Moderate or severe MAC is the exception.",
-      },
-    ],
-  },
-  infoScenario(
-    "ar",
-    "Aortic regurgitation",
-    "Section 15.A.e. In severe regurgitation these findings support elevated LV filling pressure. The text does not define how many are required.",
-    AR_SUPPORTIVE_FINDINGS,
-  ),
 ];
 
 function infoScenario(id, label, source, items) {
@@ -405,14 +278,18 @@ function infoScenario(id, label, source, items) {
     label,
     source,
     items,
-    evaluate(input) {
-      const checked = items.map((_, index) => input[`item${index}`] === true);
-      return listIndicators(checked, items);
+    evaluate() {
+      return {
+        grade: "Reference list",
+        lap: null,
+        reason: "These findings are associated with elevated LV filling pressure. They are not added up into a grade.",
+        criteria: items,
+        note: null,
+        figure: "Table 7",
+        indeterminate: false,
+      };
     },
-    fields: [
-      { type: "note", html: "Mark a finding only when it is present. Unchecked means not marked, not normal." },
-      ...items.map((item, index) => ({ type: "check", name: `item${index}`, label: item })),
-    ],
+    fields: [{ type: "list", title: "Findings", items }],
   };
 }
 
@@ -459,7 +336,7 @@ function applyVisibility(form) {
   for (const el of form.querySelectorAll("[data-show]")) {
     const visible = el.dataset.show.split(";").every((part) => {
       const [key, expected] = part.split(":");
-      const actual = key === "afibCore" ? String(afibCore) : String(data[key] ?? "");
+      const actual = key === "afibCore" ? String(afibCore) : key === "needSecond" ? (needsSecond(data) ? "yes" : "no") : String(data[key] ?? "");
       return expected.split("|").includes(actual);
     });
     el.classList.toggle("hidden", !visible);
