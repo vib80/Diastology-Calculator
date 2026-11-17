@@ -1,0 +1,8 @@
+{
+  "name": "diastology-calculator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --check src/diastology.js && node --check src/ui.js && node --test"
+  }
+}
