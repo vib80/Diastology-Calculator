@@ -3,7 +3,6 @@ import {
   assessAfib,
   assessHtx,
   assessMac,
-  assessPh,
 } from "./diastology.js";
 
 function gradeStandard(input) {
@@ -78,14 +77,6 @@ function needsSecond(input) {
   return true;
 }
 
-function phIntermediate(input, base) {
-  if (input.phLars === "unavailable") {
-    const lateralEe = input.phEe === "low" ? 7 : input.phEe === "high" ? 14 : input.phEe === "mid" ? 10 : null;
-    return { ...base, lateralEe };
-  }
-  return { ...base, lars: input.phLarsLow ? 18 : 20 };
-}
-
 const SCENARIOS = [
   {
     id: "standard",
@@ -131,7 +122,11 @@ const SCENARIOS = [
         sd: positive === 2 ? (input.afibSd ? 0.9 : 1.1) : null,
         bmi: positive === 2 ? (input.afibBmi ? 31 : 28) : null,
       });
-      return { ...report, note: null };
+      return {
+        ...report,
+        note: null,
+        reason: report.reason.replace(/Figure \d+ /g, "").replace(/ \(Figure \d+\)/g, ""),
+      };
     },
     fields: [
       { type: "note", html: "Check the abnormal findings. Leave a box unchecked when that finding is absent." },
@@ -153,7 +148,8 @@ const SCENARIOS = [
     evaluate(input) {
       const ea = input.macEa === "low" ? 0.7 : input.macEa === "mid" ? 1.2 : input.macEa === "high" ? 1.9 : null;
       const ivrt = input.macEa !== "mid" ? null : input.macIvrtShort ? 70 : 80;
-      return assessMac({ ea, ivrt });
+      const report = assessMac({ ea, ivrt });
+      return { ...report, note: null, reason: report.reason.replace(/ \(Figure \d+\)/g, "") };
     },
     fields: [
       {
@@ -174,10 +170,28 @@ const SCENARIOS = [
     label: "Pulmonary hypertension (not left-heart group II as the starting point)",
     source: "Group II pulmonary hypertension from left-heart disease uses the standard algorithm instead.",
     evaluate(input) {
-      if (input.phPath === "normal") return { ...assessPh({ ea: 0.8, e: 50 }), note: null };
-      if (input.phPath === "mid") return { ...assessPh(phIntermediate(input, { ea: 1.2, e: 60 })), note: null };
-      if (input.phPath === "high") return { ...assessPh({ ea: 2, septalEPrime: 5, lateralEPrime: 10 }), note: null };
-      return { ...assessPh({}), note: null };
+      const done = (grade, lap, reason, indeterminate = false, criteria = []) => ({
+        grade,
+        lap,
+        reason,
+        criteria,
+        note: null,
+        figure: "",
+        indeterminate,
+      });
+      if (input.phPath === "normal") return done("Normal LAP", "Normal", "E/A ≤ 0.8 and E ≤ 50 cm/s.");
+      if (input.phPath === "high") return done("Elevated LAP", "Elevated", "E/A ≥ 2 and e' is reduced.");
+      if (input.phPath !== "mid") {
+        return done("Indeterminate", null, "Choose a mitral filling pattern.", true);
+      }
+      if (input.phLars !== "unavailable") {
+        if (input.phLarsLow) return done("Elevated LAP", "Elevated", "The mitral filling pattern is intermediate and LARS is ≤ 18%.", false, ["LARS ≤ 18%"]);
+        return done("Normal LAP", "Normal", "The mitral filling pattern is intermediate and LARS is > 18%.");
+      }
+      if (input.phEe === "low") return done("Normal LAP", "Normal", "LARS was not measured and lateral E/e' is < 8.");
+      if (input.phEe === "high") return done("Elevated LAP", "Elevated", "LARS was not measured and lateral E/e' is > 13.");
+      if (input.phEe === "mid") return done("Indeterminate", null, "LARS was not measured and lateral E/e' is 8 to 13.", true);
+      return done("Indeterminate", null, "LARS was not measured. Choose lateral E/e'.", true);
     },
     fields: [
       { type: "note", html: "Lateral E/e' is the annulus used here. Septal flattening can lower septal e'." },
@@ -221,12 +235,17 @@ const SCENARIOS = [
     source: "An E/A ≥ 2 with preserved EF is common early after transplant and is not itself elevated LAP.",
     evaluate(input) {
       const averageEe = input.htxEe === "low" ? 6.9 : input.htxEe === "mid" ? 10 : input.htxEe === "high" ? 14.1 : null;
-      if (input.htxEe !== "mid") return { ...assessHtx({ averageEe }), note: null };
+      const plain = (report) => ({
+        ...report,
+        note: null,
+        reason: report.reason.replace(/ \(Figure \d+(?: \/ Table \d+)?\)/g, ""),
+      });
+      if (input.htxEe !== "mid") return plain(assessHtx({ averageEe }));
       if (input.htxSr === "available") {
-        return { ...assessHtx({ averageEe, eSrIvr: input.htxSrHigh ? 201 : 200 }), note: null };
+        return plain(assessHtx({ averageEe, eSrIvr: input.htxSrHigh ? 201 : 200 }));
       }
       const tr = input.htxTr === "high" ? 2.81 : input.htxTr === "low" ? 2.8 : null;
-      return { ...assessHtx({ averageEe, tr }), note: null };
+      return plain(assessHtx({ averageEe, tr }));
     },
     fields: [
       {

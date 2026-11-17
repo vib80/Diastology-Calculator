@@ -82,13 +82,13 @@ export const TABLE7 = Object.freeze({
   ]),
   hcm: Object.freeze([
     "Average E/e' > 14",
-    "Ar−A duration ≥ 30 ms (Table 7). The Figure 3 footnote and the MR key point use Ar−A > 30 ms.",
+    "Ar−A duration ≥ 30 ms",
     "Peak TR velocity > 2.8 m/s",
     "LA maximum volume index > 34 mL/m²",
   ]),
   rcm: Object.freeze([
     "Average E/e' > 14",
-    "Deceleration time < 140 ms (Table 7; specific, not sensitive). The narrative and Key Point 2 describe advanced restrictive physiology with deceleration time < 150 ms.",
+    "Deceleration time < 140 ms (specific, not sensitive). Advanced restrictive physiology is also described with deceleration time < 150 ms.",
     "E/A > 2.5 (specific, not sensitive)",
     "IVRT < 50 ms (specific, not sensitive)",
     "Advanced disease also shows septal and lateral e' about 3–4 cm/s. Annular velocities < 5 cm/s in systole, early diastole, and late diastole (“5-5-5”) suggest advanced cardiac amyloidosis.",
@@ -106,7 +106,7 @@ export const TABLE7 = Object.freeze({
   ]),
   mr: Object.freeze([
     "IVRT < 60 ms (specific, not sensitive)",
-    "Ar−A duration ≥ 30 ms (Table 7). Key Point 2 for MR says Ar−A > 30 ms.",
+    "Ar−A duration ≥ 30 ms",
     "IVRT / TE−e' < 5.6. Separately, the text states that IVRT / TE−e' < 3 readily predicts mean PCWP > 15 mm Hg regardless of EF.",
     "Average E/e' > 14 in patients with depressed EF. E/e' is not established in primary MR with normal EF.",
     "LARS has no significant relationship with LA v-wave or mean pressure in significant MR.",
