@@ -28,7 +28,7 @@ Leave a measurement blank when it was not obtained. A blank field is missing dat
 npm test
 ```
 
-The tests encode each Figure 3, 4, 5, 6, 8, and 9 branch used by the calculator, plus threshold boundaries (`>` versus `≥`, and the matching `<` / `≤` pairs).
+The tests encode each Figure 3, 4, 5, 6, and 8 branch used by the calculator, plus the exercise-Doppler categories and threshold boundaries (`>` versus `≥`, and the matching `<` / `≤` pairs).
 
 ## What the calculator applies
 
@@ -39,8 +39,7 @@ The tests encode each Figure 3, 4, 5, 6, 8, and 9 branch used by the calculator,
 - Figure 5 / Table 7, heart transplant recipients in sinus rhythm
 - Figure 6, pulmonary hypertension when the standard algorithm does not apply
 - Figure 8, atrial fibrillation
-- Section 13, diastolic exercise echocardiography
-- Figure 9, the HFpEF sequence after alternative diagnoses are excluded
+- Section 13, exercise Doppler filling-pressure patterns
 - Table 7 indicator lists for hypertrophic cardiomyopathy, restrictive cardiomyopathy, LVAD, sinus tachycardia, mitral regurgitation, and mitral stenosis
 - Narrative criteria for pericardial constriction, aortic regurgitation, post-TEER transseptal LAP, and a uniphasic mitral A wave
 
@@ -48,6 +47,7 @@ The tests encode each Figure 3, 4, 5, 6, 8, and 9 branch used by the calculator,
 
 The guideline names supportive findings for several populations without a counted algorithm. Those screens list the findings and do not invent a “how many positives” rule. In particular:
 
+- Clinical history is outside this calculator. It reports the diastolic-function grade and the LAP estimate from the echocardiogram.
 - H2FPEF and HFA-PEFF scores are discussed in the guideline and are not calculated here
 - The Mayo constriction-versus-restriction tree (Figure 7) is cited by description; the figure itself is not reproduced as a numeric score
 - Aortic stenosis uses the standard algorithm unless moderate or severe MAC is present; there is no separate AS tree

@@ -6,7 +6,6 @@ import {
   assessAfib,
   assessConductionTr,
   assessExercise,
-  assessHfpef,
   assessHtx,
   assessMac,
   assessPh,
@@ -38,7 +37,6 @@ const SCENARIOS = [
         tr: input.trIncreased ? 2.8 : 2.2,
         pasp: input.paspIncreased ? 35 : null,
         ea: input.eaBand === "le08" ? 0.8 : input.eaBand === "mid" ? 1.2 : input.eaBand === "ge2" ? 2 : null,
-        symptomatic: input.symptomatic === true,
         lvef: input.glsNormal ? "preserved" : input.lvef || null,
         ageSpecific: input.ageSpecific === true,
         age,
@@ -89,7 +87,6 @@ const SCENARIOS = [
           ["preserved", "Preserved (≥ 50%)"],
         ],
       },
-      { type: "check", name: "symptomatic", label: "Symptomatic (dyspnea or suspected heart failure)" },
       { type: "heading", text: "Second-stage findings" },
       {
         type: "note",
@@ -305,7 +302,7 @@ const SCENARIOS = [
   {
     id: "exercise",
     label: "Diastolic exercise echocardiography",
-    source: "Section 13. Indicated for dyspnea with grade 1 diastolic dysfunction or indeterminate resting pressure. Not indicated when rest diastolic function is completely normal, or when rest LAP is already elevated.",
+    source: "Section 13. Interpretation of exercise average E/e', septal E/e', and peak TR velocity.",
     evaluate(input) {
       const averageEe = { under10: 9, tenTo14: 12, exactly14: 14, over14: 15 }[input.exEe] ?? null;
       const tr = { under28: 2.5, between: 3, at32: 3.2, over32: 3.3 }[input.exTr] ?? null;
@@ -337,47 +334,6 @@ const SCENARIOS = [
           ["between", "TR velocity > 2.8 and < 3.2 m/s"],
           ["at32", "TR velocity = 3.2 m/s"],
           ["over32", "TR velocity > 3.2 m/s"],
-        ],
-      },
-    ],
-  },
-  {
-    id: "hfpef",
-    label: "HFpEF diagnostic sequence",
-    source: "Figure 9. Resting LAP should come from the algorithm that matches the rhythm and valves, usually Figure 3.",
-    evaluate: (input) =>
-      assessHfpef({
-        ...input,
-        alternativesExcluded: input.alternativesExcluded === true,
-        symptoms: input.symptoms === true,
-      }),
-    fields: [
-      { type: "check", name: "symptoms", label: "Symptoms or signs of heart failure" },
-      {
-        type: "check",
-        name: "alternativesExcluded",
-        label: "Significant valve disease, noncardiac PH, significant CAD, amyloidosis, HCM, and constriction have been excluded",
-      },
-      {
-        type: "select",
-        name: "restingLap",
-        label: "Resting LAP from the applicable algorithm",
-        options: [
-          ["", "Not assessed"],
-          ["elevated", "Elevated (grade 2 or 3)"],
-          ["normal", "Normal, including grade 1"],
-          ["indeterminate", "Indeterminate"],
-        ],
-      },
-      {
-        type: "select",
-        name: "exercise",
-        label: "Diastolic exercise echocardiography",
-        options: [
-          ["", "Not performed"],
-          ["positive", "Positive"],
-          ["negative", "Negative"],
-          ["indeterminate", "Indeterminate"],
         ],
       },
     ],
@@ -648,7 +604,7 @@ function toneFor(report) {
     return { box: "bg-gray-100", title: "text-gray-800" };
   }
   if (grade === "Grade 3" || grade === "Positive") return { box: "bg-red-100", title: "text-red-900" };
-  if (grade === "Grade 2" || grade === "Elevated LAP" || grade === "HFpEF likely" || grade === "HFpEF supported") {
+  if (grade === "Grade 2" || grade === "Elevated LAP" || grade === "Borderline exercise LAP") {
     return { box: "bg-amber-100", title: "text-amber-950" };
   }
   if (grade === "Grade 1") return { box: "bg-sky-100", title: "text-sky-950" };

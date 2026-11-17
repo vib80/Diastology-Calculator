@@ -10,7 +10,6 @@ import {
   assessConductionTr,
   assessDiastolicDysfunction,
   assessExercise,
-  assessHfpef,
   assessHtx,
   assessMac,
   assessPh,
@@ -159,11 +158,10 @@ test("Figure 3: reduced e' only and E/A ≤ 0.8 is grade 1, not the second-stage
     averageEe: 10,
     pasp: 30,
     ea: 0.8,
-    symptomatic: true,
   });
   assert.equal(out.grade, "Grade 1");
   assert.equal(out.lap, "Normal");
-  assert.match(out.note, /exercise/i);
+  assert.equal(out.note, null);
 });
 
 test("Figure 3: E/A just above 0.8 with negative adjudicators is normal LAP, not grade 1", () => {
@@ -301,15 +299,14 @@ test("Figure 3: missing second-stage data stays indeterminate unless a supplemen
   assert.equal(twoMissing.indeterminate, true);
   assert.notEqual(twoMissing.grade, "Grade 1");
 
-  const symptomaticNormal = assessStandard({
+  const normalStudy = assessStandard({
     septalEPrime: 9,
     lateralEPrime: 12,
     averageEe: 7,
     tr: 2.2,
-    symptomatic: true,
   });
-  assert.equal(symptomaticNormal.grade, "Normal diastolic function");
-  assert.equal(symptomaticNormal.note, null);
+  assert.equal(normalStudy.grade, "Normal diastolic function");
+  assert.equal(normalStudy.note, null);
 
   const valsalva = assessStandard({
     septalEPrime: 9,
@@ -649,65 +646,10 @@ test("Section 13 exercise categories and boundaries", () => {
   assert.equal(assessExercise({ averageEe: 9.99, tr: 2.79 }).grade, "Normal exercise LAP");
   assert.equal(assessExercise({ averageEe: 10, tr: 2.7 }).indeterminate, true);
   assert.equal(assessExercise({ averageEe: 9, tr: 2.8 }).indeterminate, true);
-  assert.equal(assessExercise({ averageEe: 13.9, tr: 3.21 }).grade, "HFpEF not supported");
-  assert.equal(assessExercise({ averageEe: 14.01, tr: 3.0 }).grade, "HFpEF likely");
+  assert.equal(assessExercise({ averageEe: 13.9, tr: 3.21 }).grade, "Exercise E/e' not elevated");
+  assert.equal(assessExercise({ averageEe: 14.01, tr: 3.0 }).grade, "Borderline exercise LAP");
   assert.equal(assessExercise({ averageEe: 14, tr: 3.0 }).indeterminate, true);
   assert.equal(assessExercise({ averageEe: 14.5, tr: 2.8 }).indeterminate, true);
-});
-
-test("Figure 9 HFpEF pathway", () => {
-  assert.equal(assessHfpef({ symptoms: true, restingLap: "elevated" }).grade, "HFpEF not concluded");
-  assert.equal(
-    assessHfpef({
-      symptoms: true,
-      alternativesExcluded: true,
-      restingLap: "elevated",
-    }).grade,
-    "HFpEF supported",
-  );
-  assert.equal(
-    assessHfpef({
-      symptoms: true,
-      alternativesExcluded: true,
-      restingLap: "normal",
-    }).grade,
-    "Exercise testing needed",
-  );
-  assert.equal(
-    assessHfpef({
-      symptoms: true,
-      alternativesExcluded: true,
-      restingLap: "normal",
-      exercise: "positive",
-    }).grade,
-    "HFpEF supported",
-  );
-  assert.equal(
-    assessHfpef({
-      symptoms: true,
-      alternativesExcluded: true,
-      restingLap: "normal",
-      exercise: "negative",
-    }).grade,
-    "Noncardiac dyspnea",
-  );
-  assert.equal(
-    assessHfpef({
-      symptoms: true,
-      alternativesExcluded: true,
-      restingLap: "normal",
-      exercise: "indeterminate",
-    }).indeterminate,
-    true,
-  );
-  assert.equal(
-    assessHfpef({
-      symptoms: false,
-      alternativesExcluded: true,
-      restingLap: "elevated",
-    }).grade,
-    "HFpEF not concluded",
-  );
 });
 
 test("TEER LAP estimate and conduction-only TR indicator", () => {

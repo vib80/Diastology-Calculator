@@ -140,7 +140,7 @@ export const CONSTRICTION_CRITERIA = Object.freeze([
   "Annulus reversus: septal e' greater than lateral e'",
   "Strain reversus: lateral LV and RV free-wall peak systolic strain reduced relative to the septum",
   "Expiratory hepatic-vein end-diastolic reversal velocity / forward flow ≥ 0.8",
-  "A normal septal e' in a patient referred for heart failure should raise suspicion for constriction",
+  "A normal septal e' velocity should raise suspicion for pericardial constriction",
   "Do not apply the Figure 3 LAP algorithm",
 ]);
 
@@ -479,11 +479,6 @@ function gradeElevated(ea) {
   };
 }
 
-function exerciseAdvice(input, recommend) {
-  if (!recommend || !input.symptomatic) return null;
-  return "Symptomatic patient with normal resting LAP: diastolic exercise echocardiography is recommended (Figure 3 and Section 13).";
-}
-
 function ageSpecificNote(input, ea) {
   if (!input.ageSpecific) return null;
   const eBand = ageBandForEPrime(input.age);
@@ -664,7 +659,7 @@ export function assessStandard(input = {}) {
         lap: "Normal",
         reason: `Only e' is reduced, E/e' and TR/PASP are not increased, and ${lowLabel}.`,
         criteria: [...criteria, lowLabel],
-        note: [ageNote, exerciseAdvice(input, true)].filter(Boolean).join(" ") || null,
+        note: ageNote,
         figure: "Figure 3",
         extra: { figure2: dd },
       });
@@ -705,7 +700,7 @@ function resolveSecondStage(input, criteria, ea, dd, ageNote) {
       reason:
         "Core findings are inconclusive, and every reliable second-stage parameter that was measured is below the elevated-LAP cutoff. This is not grade 1. Grade 1 requires reduced e' as the only core abnormality plus a low E/A.",
       criteria,
-      note: [ageNote, ddNote, single, ...adj.notes, exerciseAdvice(input, true)]
+      note: [ageNote, ddNote, single, ...adj.notes]
         .filter(Boolean)
         .join(" "),
       figure: "Figure 3",
@@ -1163,93 +1158,24 @@ export function assessExercise(input = {}) {
   }
   if (avg !== null && avg < 14 && tr !== null && tr > 3.2) {
     return result({
-      grade: "HFpEF not supported",
+      grade: "Exercise E/e' not elevated",
       lap: "Not increased by the exercise rule",
       reason:
-        "An E/e' ratio < 14 does not support HFpEF even when TR velocity is > 3.2 m/s.",
+        "Average E/e' is < 14. That exercise pattern is not the elevated filling-pressure pattern, even when TR velocity is > 3.2 m/s.",
       figure: "Section 13.C",
     });
   }
   if (avg !== null && avg > 14 && tr !== null && tr > 2.8 && tr < 3.2) {
     return result({
-      grade: "HFpEF likely",
+      grade: "Borderline exercise LAP",
       lap: "Borderline increase",
-      reason: "E/e' is > 14 and TR velocity is > 2.8 but < 3.2 m/s.",
+      reason: "Average E/e' is > 14 and TR velocity is > 2.8 but < 3.2 m/s.",
       figure: "Section 13.C",
     });
   }
   return indeterminate(
-    "The exercise measurements do not meet a named Section 13.C category (positive, normal, HFpEF not supported, or HFpEF likely). Do not force a grade across the gaps at E/e' of 10 to 14 or at the exact TR bounds the text leaves between branches.",
+    "The exercise measurements do not meet a named Section 13.C category (positive, normal exercise LAP, E/e' below the elevated threshold, or borderline filling pressure). Values that fall between those branches stay indeterminate.",
     "Section 13.C",
-  );
-}
-
-export function assessHfpef(input = {}) {
-  if (!input.alternativesExcluded) {
-    return result({
-      grade: "HFpEF not concluded",
-      reason:
-        "Before diagnosing HFpEF, exclude significant mitral stenosis, primary mitral regurgitation, aortic stenosis, aortic regurgitation, primary TR, noncardiac pulmonary hypertension, significant coronary disease, cardiac amyloidosis, hypertrophic cardiomyopathy, and pericardial constriction (Figure 9).",
-      figure: "Figure 9",
-      indeterminate: true,
-    });
-  }
-  if (!input.symptoms) {
-    return result({
-      grade: "HFpEF not concluded",
-      reason:
-        "This pathway is for patients with clinical suspicion of heart failure. HFpEF is not concluded without symptoms or signs.",
-      figure: "Figure 9",
-    });
-  }
-  if (input.restingLap === "elevated") {
-    return result({
-      grade: "HFpEF supported",
-      lap: "Elevated at rest",
-      reason:
-        "Alternatives have been excluded, symptoms are present, and resting LAP is elevated (grade 2 or 3). HFpEF is supported (Figure 9, Key Point 4).",
-      figure: "Figure 9",
-    });
-  }
-  if (input.restingLap === "normal") {
-    if (input.exercise === "positive") {
-      return result({
-        grade: "HFpEF supported",
-        lap: "Increased with exercise",
-        reason: "Resting LAP is normal and diastolic exercise echocardiography is positive (Key Point 5).",
-        figure: "Figure 9",
-      });
-    }
-    if (input.exercise === "negative") {
-      return result({
-        grade: "Noncardiac dyspnea",
-        lap: "Normal",
-        reason:
-          "Resting LAP is normal and diastolic exercise echocardiography is negative (Key Point 5).",
-        figure: "Figure 9",
-      });
-    }
-    if (input.exercise === "indeterminate") {
-      return result({
-        grade: "Inconclusive",
-        reason:
-          "Exercise echocardiography is indeterminate. The next step is right-heart catheterization, with exercise when feasible (Key Point 5). Invasive exercise mean PCWP ≥ 25 mm Hg supports HFpEF (Table 1).",
-        figure: "Figure 9",
-        indeterminate: true,
-      });
-    }
-    return result({
-      grade: "Exercise testing needed",
-      lap: "Normal at rest",
-      reason:
-        "Symptoms are present and resting LAP is normal. Perform diastolic exercise echocardiography before concluding the cause of dyspnea (Figure 9).",
-      figure: "Figure 9",
-      indeterminate: true,
-    });
-  }
-  return indeterminate(
-    "Resting LAP is indeterminate. Use diastolic exercise echocardiography or right-heart catheterization rather than a resting HFpEF label (Section 13 and Figure 9).",
-    "Figure 9",
   );
 }
 
