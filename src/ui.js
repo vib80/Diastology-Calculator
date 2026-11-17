@@ -90,7 +90,7 @@ const SCENARIOS = [
   {
     id: "standard",
     label: "Sinus rhythm, standard algorithm",
-    source: "Figure 3. Do not use this path for severe primary MR, any mitral stenosis, moderate or severe MAC, atrial fibrillation, LVAD, noncardiac pulmonary hypertension, heart transplant, or pericardial constriction.",
+    source: "Do not use this path for severe primary MR, any mitral stenosis, moderate or severe MAC, atrial fibrillation, LVAD, noncardiac pulmonary hypertension, heart transplant, or pericardial constriction.",
     evaluate: gradeStandard,
     fields: [
       { type: "note", html: "Check each abnormal finding. Leave it unchecked when that finding is absent." },
@@ -119,7 +119,7 @@ const SCENARIOS = [
   {
     id: "afib",
     label: "Atrial fibrillation",
-    source: "Figure 8. Average several cycles at a usual rate.",
+    source: "Average several cycles at a usual rate.",
     evaluate(input) {
       const positive = ["afibE", "afibEe", "afibTr", "afibDt"].filter((key) => input[key]).length;
       const report = assessAfib({
@@ -149,7 +149,7 @@ const SCENARIOS = [
   {
     id: "mac",
     label: "Moderate or severe MAC",
-    source: "Figure 4 and Table 7. Mild MAC is not this algorithm.",
+    source: "Mild MAC is not this algorithm.",
     evaluate(input) {
       const ea = input.macEa === "low" ? 0.7 : input.macEa === "mid" ? 1.2 : input.macEa === "high" ? 1.9 : null;
       const ivrt = input.macEa !== "mid" ? null : input.macIvrtShort ? 70 : 80;
@@ -172,7 +172,7 @@ const SCENARIOS = [
   {
     id: "ph",
     label: "Pulmonary hypertension (not left-heart group II as the starting point)",
-    source: "Figure 6. Group II pulmonary hypertension from left-heart disease is estimated with the standard algorithm instead.",
+    source: "Group II pulmonary hypertension from left-heart disease uses the standard algorithm instead.",
     evaluate(input) {
       if (input.phPath === "normal") return { ...assessPh({ ea: 0.8, e: 50 }), note: null };
       if (input.phPath === "mid") return { ...assessPh(phIntermediate(input, { ea: 1.2, e: 60 })), note: null };
@@ -218,7 +218,7 @@ const SCENARIOS = [
   {
     id: "htx",
     label: "Heart transplant, sinus rhythm",
-    source: "Figure 5 and Table 7. An E/A ≥ 2 with preserved EF is common early after transplant and is not itself elevated LAP.",
+    source: "An E/A ≥ 2 with preserved EF is common early after transplant and is not itself elevated LAP.",
     evaluate(input) {
       const averageEe = input.htxEe === "low" ? 6.9 : input.htxEe === "mid" ? 10 : input.htxEe === "high" ? 14.1 : null;
       if (input.htxEe !== "mid") return { ...assessHtx({ averageEe }), note: null };
@@ -263,12 +263,12 @@ const SCENARIOS = [
       },
     ],
   },
-  infoScenario("hcm", "Hypertrophic cardiomyopathy", "Table 7. Findings associated with elevated LV filling pressure.", TABLE7.hcm),
-  infoScenario("rcm", "Restrictive cardiomyopathy", "Table 7, plus the narrative description of advanced restrictive physiology.", TABLE7.rcm),
-  infoScenario("lvad", "LV assist device", "Table 7, including the interatrial-septum pressure relationship.", TABLE7.lvad),
-  infoScenario("tachy", "Sinus tachycardia", "Table 7.", TABLE7.tachycardia),
-  infoScenario("mr", "Mitral regurgitation", "Table 7. The standard algorithm is not for severe primary MR.", TABLE7.mr),
-  infoScenario("ms", "Mitral stenosis", "Table 7. Any mitral stenosis excludes the standard algorithm.", TABLE7.ms),
+  infoScenario("hcm", "Hypertrophic cardiomyopathy", "Findings associated with elevated LV filling pressure.", TABLE7.hcm),
+  infoScenario("rcm", "Restrictive cardiomyopathy", "Findings associated with elevated LV filling pressure, including advanced restrictive physiology.", TABLE7.rcm),
+  infoScenario("lvad", "LV assist device", "Findings associated with elevated LV filling pressure, including the interatrial-septum relationship.", TABLE7.lvad),
+  infoScenario("tachy", "Sinus tachycardia", "Findings associated with elevated LV filling pressure.", TABLE7.tachycardia),
+  infoScenario("mr", "Mitral regurgitation", "The standard algorithm is not for severe primary MR.", TABLE7.mr),
+  infoScenario("ms", "Mitral stenosis", "Any mitral stenosis excludes the standard algorithm.", TABLE7.ms),
 ];
 
 function infoScenario(id, label, source, items) {
@@ -284,7 +284,7 @@ function infoScenario(id, label, source, items) {
         reason: "These findings are associated with elevated LV filling pressure. They are not added up into a grade.",
         criteria: items,
         note: null,
-        figure: "Table 7",
+        figure: "",
         indeterminate: false,
       };
     },
@@ -429,7 +429,6 @@ function show(report) {
     ${criteria}
     ${pressure}
     ${note}
-    <p class="text-xs mt-4 text-gray-500">Source: ${escapeHtml(report.figure || "")}</p>
   </section>`;
 }
 
