@@ -15,91 +15,126 @@ import {
   listIndicators,
 } from "./diastology.js";
 
+function phIntermediate(input, base) {
+  if (input.phLars === "unavailable") {
+    const lateralEe = input.phEe === "low" ? 7 : input.phEe === "high" ? 14 : input.phEe === "mid" ? 10 : null;
+    return { ...base, lateralEe };
+  }
+  return { ...base, lars: input.phLarsLow ? 18 : 20 };
+}
+
 const SCENARIOS = [
   {
     id: "standard",
     label: "Sinus rhythm, standard algorithm",
     source: "Figure 3, with Figure 2 shown alongside. Not for severe primary MR, any mitral stenosis, moderate or severe MAC, mitral repair, replacement, or TEER, atrial fibrillation, LVAD, noncardiac pulmonary hypertension, heart transplant, or pericardial constriction.",
-    evaluate: assessStandard,
+    evaluate(input) {
+      const secondMissing = input.secondMissing === true;
+      const age = input.ageBand === "young" ? 30 : input.ageBand === "midage" ? 50 : input.ageBand === "older" ? 70 : null;
+      return assessStandard({
+        septalEPrime: input.eReduced ? 6 : 8,
+        lateralEPrime: input.eReduced ? 6 : 10,
+        averageEe: input.eeIncreased ? 14 : 8,
+        tr: input.trIncreased ? 2.8 : 2.2,
+        pasp: input.paspIncreased ? 35 : null,
+        ea: input.eaBand === "le08" ? 0.8 : input.eaBand === "mid" ? 1.2 : input.eaBand === "ge2" ? 2 : null,
+        symptomatic: input.symptomatic === true,
+        lvef: input.glsNormal ? "preserved" : input.lvef || null,
+        ageSpecific: input.ageSpecific === true,
+        age,
+        lars: secondMissing ? null : input.larsLow ? 18 : 25,
+        lavi: secondMissing ? null : input.laviHigh ? 35 : 30,
+        sd: secondMissing ? null : input.sdLow ? 0.67 : 1.2,
+        ivrt: secondMissing ? null : input.ivrtShort ? 70 : 90,
+        significantMr: input.significantMr === true,
+        laStunning: input.laStunning === true,
+        gls: input.glsNormal ? 19 : null,
+        prEdv: input.prHigh ? 2 : null,
+        padp: input.padpHigh ? 16 : null,
+        lWave: input.lWaveHigh ? 50 : null,
+        arMinusA: input.arALong ? 31 : null,
+        valsalvaEaDecreasePct: input.valsalvaPositive ? 50 : null,
+        sex: input.massSex || null,
+        lvMassIndex: input.massHigh ? (input.massSex === "male" ? 116 : 96) : null,
+      });
+    },
     fields: [
       {
         type: "note",
-        html: "Leave a field blank if that measurement was not made. Blank is not normal. When PASP is entered, it is used instead of TR velocity because PASP means right-atrial pressure was estimated.",
+        html: "Check each abnormal finding that is present. An unchecked box means that finding is absent, not missing.",
       },
-      { type: "heading", text: "Core variables" },
-      { type: "number", name: "septalEPrime", label: "Septal e'", unit: "cm/s", step: "0.1" },
-      { type: "number", name: "lateralEPrime", label: "Lateral e'", unit: "cm/s", step: "0.1" },
-      { type: "number", name: "averageEPrime", label: "Average e' (only if both sites were not entered)", unit: "cm/s", step: "0.1" },
-      { type: "number", name: "septalEe", label: "Septal E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "lateralEe", label: "Lateral E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "averageEe", label: "Average E/e' (only if both sites were not entered)", unit: "", step: "0.1" },
-      { type: "number", name: "tr", label: "Peak TR velocity", unit: "m/s", step: "0.01" },
-      { type: "number", name: "pasp", label: "PASP", unit: "mm Hg", step: "1" },
-      { type: "number", name: "e", label: "Mitral E", unit: "cm/s", step: "1" },
-      { type: "number", name: "a", label: "Mitral A", unit: "cm/s", step: "1" },
-      { type: "number", name: "ea", label: "E/A, if E and A were not both entered", unit: "", step: "0.01" },
+      { type: "heading", text: "Core findings" },
+      { type: "check", name: "eReduced", label: "Reduced e' (septal ≤ 6, lateral ≤ 7, or average ≤ 6.5 cm/s)" },
+      { type: "check", name: "eeIncreased", label: "Increased E/e' (septal ≥ 15, lateral ≥ 13, or average ≥ 14)" },
+      { type: "check", name: "trIncreased", label: "TR velocity ≥ 2.8 m/s" },
+      { type: "check", name: "paspIncreased", label: "PASP ≥ 35 mm Hg (use this instead of TR when RAP was estimated)" },
       {
-        type: "select",
+        type: "radios",
+        name: "eaBand",
+        label: "E/A ratio",
+        options: [
+          ["unknown", "Not specified", true],
+          ["le08", "E/A ≤ 0.8"],
+          ["mid", "E/A > 0.8 and < 2"],
+          ["ge2", "E/A ≥ 2"],
+        ],
+      },
+      {
+        type: "radios",
         name: "lvef",
         label: "LVEF",
         options: [
-          ["", "Not specified"],
-          ["preserved", "Preserved (≥ 50%)"],
+          ["", "Not specified", true],
           ["reduced", "Reduced (< 50%)"],
+          ["preserved", "Preserved (≥ 50%)"],
         ],
       },
       { type: "check", name: "symptomatic", label: "Symptomatic (dyspnea or suspected heart failure)" },
-      { type: "check", name: "ageSpecific", label: "Use age-specific e' limits (Table 6) and the Table 5 E/A floor" },
-      { type: "number", name: "age", label: "Age", unit: "years", step: "1" },
-      {
-        type: "details-start",
-        summary: "Second-stage parameters",
-        hint: "Open when the core variables disagree",
-      },
+      { type: "heading", text: "Second-stage findings" },
       {
         type: "note",
-        html: "Used when the three core variables disagree, and when e' is the only abnormality but E/A is above the low cutoff. LARS ≤ 18%, pulmonary vein S/D ≤ 0.67, LAVi > 34 mL/m², or IVRT ≤ 70 ms.",
+        html: "Use these when the core findings disagree, or when e' is the only abnormality and E/A is above 0.8.",
       },
-      { type: "number", name: "lars", label: "LA reservoir strain", unit: "%", step: "0.1" },
-      { type: "number", name: "lavi", label: "LAVi", unit: "mL/m²", step: "0.1" },
-      { type: "number", name: "sd", label: "Pulmonary vein S/D", unit: "", step: "0.01" },
-      { type: "number", name: "systolicFillingFraction", label: "Pulmonary vein systolic filling fraction, if S/D was not entered", unit: "%", step: "1" },
-      { type: "number", name: "ivrt", label: "IVRT", unit: "ms", step: "1" },
-      { type: "number", name: "gls", label: "LV GLS (enter 18 or −18)", unit: "%", step: "0.1" },
-      { type: "check", name: "significantMr", label: "Significant mitral regurgitation (LARS will not be used)" },
-      { type: "check", name: "laStunning", label: "Suspected LA stunning (LARS will not be used)" },
-      { type: "details-end" },
+      { type: "check", name: "larsLow", label: "LARS ≤ 18%" },
+      { type: "check", name: "sdLow", label: "Pulmonary vein S/D ≤ 0.67" },
+      { type: "check", name: "laviHigh", label: "LAVi > 34 mL/m²" },
+      { type: "check", name: "ivrtShort", label: "IVRT ≤ 70 ms" },
+      { type: "check", name: "secondMissing", label: "These second-stage measurements were not obtained" },
+      { type: "check", name: "significantMr", label: "Significant mitral regurgitation (do not use LARS)" },
+      { type: "check", name: "laStunning", label: "Suspected LA stunning (do not use LARS)" },
+      { type: "check", name: "glsNormal", label: "Preserved EF and GLS > 18% (do not use LARS)" },
       {
         type: "details-start",
-        summary: "Supplemental methods",
-        hint: "Only if LARS, pulmonary vein flow, LAVi, and IVRT are missing",
+        summary: "Supplemental methods and age-specific limits",
       },
+      { type: "check", name: "prHigh", label: "PR end-diastolic velocity ≥ 2 m/s" },
+      { type: "check", name: "padpHigh", label: "PA diastolic pressure ≥ 16 mm Hg" },
+      { type: "check", name: "lWaveHigh", label: "Mitral L-wave ≥ 50 cm/s" },
+      { type: "check", name: "arALong", label: "Ar−A duration > 30 ms" },
+      { type: "check", name: "valsalvaPositive", label: "Valsalva lowers E/A by ≥ 50%" },
+      { type: "check", name: "ageSpecific", label: "Use age-specific e' and E/A limits" },
       {
-        type: "note",
-        html: "Figure 3 uses these only when LARS, pulmonary vein flow, LAVi, and IVRT are unavailable or unreliable. Positive cutoffs: PR end-diastolic velocity ≥ 2 m/s, PA diastolic pressure ≥ 16 mm Hg, L-wave ≥ 50 cm/s, Ar−A > 30 ms, Valsalva E/A decrease ≥ 50%.",
-      },
-      { type: "number", name: "prEdv", label: "PR end-diastolic velocity", unit: "m/s", step: "0.01" },
-      { type: "number", name: "padp", label: "PA diastolic pressure", unit: "mm Hg", step: "1" },
-      { type: "number", name: "lWave", label: "Mitral L-wave velocity", unit: "cm/s", step: "1" },
-      { type: "number", name: "arMinusA", label: "Ar−A duration", unit: "ms", step: "1" },
-      { type: "number", name: "valsalvaEaDecreasePct", label: "Valsalva decrease in E/A", unit: "%", step: "1" },
-      { type: "details-end" },
-      {
-        type: "details-start",
-        summary: "Figure 2 structural marker",
-        hint: "Optional LV mass",
-      },
-      {
-        type: "select",
-        name: "sex",
-        label: "Sex, for LV mass index",
+        type: "radios",
+        name: "ageBand",
+        label: "Age band",
+        show: "ageSpecific:true",
         options: [
-          ["", "Not specified"],
-          ["female", "Female"],
-          ["male", "Male"],
+          ["young", "20–39 years"],
+          ["midage", "40–65 years"],
+          ["older", "> 65 years"],
         ],
       },
-      { type: "number", name: "lvMassIndex", label: "LV mass index", unit: "g/m²", step: "1" },
+      {
+        type: "radios",
+        name: "massSex",
+        label: "LV mass index above the Figure 2 limit",
+        options: [
+          ["", "Not used", true],
+          ["female", "Woman, LV mass index > 95 g/m²"],
+          ["male", "Man, LV mass index > 115 g/m²"],
+        ],
+      },
+      { type: "check", name: "massHigh", label: "LV mass index is above that limit", show: "massSex:female|male" },
       { type: "details-end" },
     ],
   },
@@ -107,28 +142,38 @@ const SCENARIOS = [
     id: "afib",
     label: "Atrial fibrillation",
     source: "Figure 8. Average several cycles at a representative rate. Table 7 lists additional indicators that are not branches of Figure 8.",
-    evaluate: assessAfib,
+    evaluate(input) {
+      const positive = ["afibE", "afibEe", "afibTr", "afibDt"].filter((key) => input[key]).length;
+      const sendSupp = positive === 2 && input.suppMissing !== true;
+      return assessAfib({
+        e: input.afibE ? 100 : 80,
+        septalEe: input.afibEe ? 11.1 : 10,
+        tr: input.afibTr ? 2.81 : 2.5,
+        dt: input.afibDt ? 160 : 180,
+        lvef: input.lvefReduced ? "reduced" : input.lvefPreserved ? "preserved" : null,
+        lars: sendSupp ? (input.afibLars ? 17.9 : 20) : null,
+        sd: sendSupp ? (input.afibSd ? 0.9 : 1.1) : null,
+        bmi: sendSupp ? (input.afibBmi ? 31 : 28) : null,
+      });
+    },
     fields: [
-      { type: "heading", text: "Core criteria" },
-      { type: "number", name: "e", label: "Mitral E", unit: "cm/s", step: "1" },
-      { type: "number", name: "septalEe", label: "Septal E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "tr", label: "Peak TR velocity", unit: "m/s", step: "0.01" },
-      { type: "number", name: "pasp", label: "PASP", unit: "mm Hg", step: "1" },
-      { type: "number", name: "dt", label: "Mitral E deceleration time", unit: "ms", step: "1" },
+      { type: "note", html: "Check the abnormal findings. Unchecked means that finding is absent." },
+      { type: "heading", text: "Core findings" },
+      { type: "check", name: "afibE", label: "Mitral E velocity ≥ 100 cm/s" },
+      { type: "check", name: "afibEe", label: "Septal E/e' > 11" },
+      { type: "check", name: "afibTr", label: "TR velocity > 2.8 m/s or PASP > 35 mm Hg" },
+      { type: "check", name: "afibDt", label: "Deceleration time ≤ 160 ms" },
+      { type: "check", name: "lvefPreserved", label: "LVEF is preserved (adds the Table 7 note about DT)" },
+      { type: "heading", text: "Supplemental findings", show: "afibCore:2" },
       {
-        type: "select",
-        name: "lvef",
-        label: "LVEF (note only; Figure 8 does not change the DT branch)",
-        options: [
-          ["", "Not specified"],
-          ["preserved", "Preserved (≥ 50%)"],
-          ["reduced", "Reduced (< 50%)"],
-        ],
+        type: "note",
+        show: "afibCore:2",
+        html: "Figure 8 asks for these only when exactly two core findings are positive.",
       },
-      { type: "heading", text: "Supplemental criteria, used when exactly two core criteria are positive" },
-      { type: "number", name: "lars", label: "LARS", unit: "%", step: "0.1" },
-      { type: "number", name: "sd", label: "Pulmonary vein S/D", unit: "", step: "0.01" },
-      { type: "number", name: "bmi", label: "BMI", unit: "kg/m²", step: "0.1" },
+      { type: "check", name: "afibLars", label: "LARS < 18%", show: "afibCore:2" },
+      { type: "check", name: "afibSd", label: "Pulmonary vein S/D < 1", show: "afibCore:2" },
+      { type: "check", name: "afibBmi", label: "BMI > 30 kg/m²", show: "afibCore:2" },
+      { type: "check", name: "suppMissing", label: "Supplemental measurements were not obtained", show: "afibCore:2" },
       { type: "list", title: "Other Table 7 atrial-fibrillation indicators, not scored", items: TABLE7.afib },
     ],
   },
@@ -136,28 +181,76 @@ const SCENARIOS = [
     id: "mac",
     label: "Moderate or severe MAC",
     source: "Figure 4 and Table 7. Mild MAC is not this algorithm.",
-    evaluate: assessMac,
+    evaluate(input) {
+      const ea = input.macEa === "low" ? 0.7 : input.macEa === "mid" ? 1.2 : input.macEa === "high" ? 1.9 : null;
+      const ivrt = input.macEa !== "mid" ? null : input.macIvrtMissing ? null : input.macIvrtShort ? 70 : 80;
+      return assessMac({ ea, ivrt });
+    },
     fields: [
-      { type: "number", name: "e", label: "Mitral E", unit: "cm/s", step: "1" },
-      { type: "number", name: "a", label: "Mitral A", unit: "cm/s", step: "1" },
-      { type: "number", name: "ea", label: "E/A, if E and A were not both entered", unit: "", step: "0.01" },
-      { type: "number", name: "ivrt", label: "IVRT, required when E/A is 0.8 to 1.8", unit: "ms", step: "1" },
+      {
+        type: "radios",
+        name: "macEa",
+        label: "E/A ratio",
+        options: [
+          ["low", "E/A < 0.8"],
+          ["mid", "E/A 0.8 to 1.8"],
+          ["high", "E/A > 1.8"],
+        ],
+      },
+      { type: "check", name: "macIvrtShort", label: "IVRT < 80 ms", show: "macEa:mid" },
+      { type: "check", name: "macIvrtMissing", label: "IVRT was not measured", show: "macEa:mid" },
     ],
   },
   {
     id: "ph",
     label: "Pulmonary hypertension (not left-heart group II as the starting point)",
     source: "Figure 6. Group II pulmonary hypertension from left-heart disease is estimated with the standard algorithm instead.",
-    evaluate: assessPh,
+    evaluate(input) {
+      if (input.phPath === "normal") return assessPh({ ea: 0.8, e: 50 });
+      if (input.phPath === "lowE") {
+        return assessPh(phIntermediate(input, { ea: 0.8, e: 60 }));
+      }
+      if (input.phPath === "mid") return assessPh(phIntermediate(input, { ea: 1.2 }));
+      if (input.phPath === "highReduced") return assessPh({ ea: 2, septalEPrime: 5, lateralEPrime: 10 });
+      if (input.phPath === "highPreserved") return assessPh({ ea: 2, septalEPrime: 8, lateralEPrime: 10 });
+      return assessPh({});
+    },
     fields: [
-      { type: "note", html: "Use lateral E/e' rather than the septal or average ratio. Septal flattening can lower septal e'." },
-      { type: "number", name: "e", label: "Mitral E", unit: "cm/s", step: "1" },
-      { type: "number", name: "a", label: "Mitral A", unit: "cm/s", step: "1" },
-      { type: "number", name: "ea", label: "E/A, if E and A were not both entered", unit: "", step: "0.01" },
-      { type: "number", name: "septalEPrime", label: "Septal e'", unit: "cm/s", step: "0.1" },
-      { type: "number", name: "lateralEPrime", label: "Lateral e'", unit: "cm/s", step: "0.1" },
-      { type: "number", name: "lars", label: "LARS", unit: "%", step: "0.1" },
-      { type: "number", name: "lateralEe", label: "Lateral E/e', used when LARS is blank", unit: "", step: "0.1" },
+      { type: "note", html: "Lateral E/e' is the annulus used here. Septal flattening can lower septal e'." },
+      {
+        type: "radios",
+        name: "phPath",
+        label: "Mitral filling",
+        options: [
+          ["normal", "E/A ≤ 0.8 and E ≤ 50 cm/s"],
+          ["lowE", "E/A ≤ 0.8 and E > 50 cm/s"],
+          ["mid", "E/A > 0.8 and < 2"],
+          ["highReduced", "E/A ≥ 2 and e' is reduced"],
+          ["highPreserved", "E/A ≥ 2 and e' is not reduced"],
+        ],
+      },
+      {
+        type: "radios",
+        name: "phLars",
+        label: "LARS",
+        show: "phPath:lowE|mid",
+        options: [
+          ["available", "LARS was measured", true],
+          ["unavailable", "LARS was not measured"],
+        ],
+      },
+      { type: "check", name: "phLarsLow", label: "LARS ≤ 18%", show: "phPath:lowE|mid;phLars:available" },
+      {
+        type: "radios",
+        name: "phEe",
+        label: "Lateral E/e'",
+        show: "phPath:lowE|mid;phLars:unavailable",
+        options: [
+          ["low", "Lateral E/e' < 8"],
+          ["mid", "Lateral E/e' 8 to 13"],
+          ["high", "Lateral E/e' > 13"],
+        ],
+      },
       { type: "list", title: "Table 7 wording, which is not identical to Figure 6", items: TABLE7.ph },
     ],
   },
@@ -165,24 +258,87 @@ const SCENARIOS = [
     id: "htx",
     label: "Heart transplant, sinus rhythm",
     source: "Figure 5 and Table 7. An E/A ≥ 2 with preserved EF is common early after transplant and is not itself elevated LAP.",
-    evaluate: assessHtx,
+    evaluate(input) {
+      const averageEe = input.htxEe === "low" ? 6.9 : input.htxEe === "mid" ? 10 : input.htxEe === "high" ? 14.1 : null;
+      if (input.htxEe !== "mid") return assessHtx({ averageEe });
+      if (input.htxSr === "available") {
+        return assessHtx({ averageEe, eSrIvr: input.htxSrHigh ? 201 : 200 });
+      }
+      const tr = input.htxTr === "high" ? 2.81 : input.htxTr === "low" ? 2.8 : null;
+      return assessHtx({ averageEe, tr });
+    },
     fields: [
-      { type: "number", name: "septalEe", label: "Septal E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "lateralEe", label: "Lateral E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "averageEe", label: "Average E/e', if both sites were not entered", unit: "", step: "0.1" },
-      { type: "number", name: "eSrIvr", label: "E / SRIVR", unit: "cm", step: "1" },
-      { type: "number", name: "tr", label: "Peak TR velocity, if E/SRIVR was not measured", unit: "m/s", step: "0.01" },
+      {
+        type: "radios",
+        name: "htxEe",
+        label: "Average E/e'",
+        options: [
+          ["low", "Average E/e' < 7"],
+          ["mid", "Average E/e' 7 to 14"],
+          ["high", "Average E/e' > 14"],
+        ],
+      },
+      {
+        type: "radios",
+        name: "htxSr",
+        label: "E/SRIVR",
+        show: "htxEe:mid",
+        options: [
+          ["available", "E/SRIVR was measured", true],
+          ["unavailable", "E/SRIVR was not measured"],
+        ],
+      },
+      { type: "check", name: "htxSrHigh", label: "E/SRIVR > 200 cm", show: "htxEe:mid;htxSr:available" },
+      {
+        type: "radios",
+        name: "htxTr",
+        label: "TR velocity",
+        show: "htxEe:mid;htxSr:unavailable",
+        options: [
+          ["high", "TR velocity > 2.8 m/s"],
+          ["low", "TR velocity ≤ 2.8 m/s"],
+          ["missing", "TR was not measured"],
+        ],
+      },
     ],
   },
   {
     id: "exercise",
     label: "Diastolic exercise echocardiography",
     source: "Section 13. Indicated for dyspnea with grade 1 diastolic dysfunction or indeterminate resting pressure. Not indicated when rest diastolic function is completely normal, or when rest LAP is already elevated.",
-    evaluate: assessExercise,
+    evaluate(input) {
+      const averageEe = { under10: 9, tenTo14: 12, exactly14: 14, over14: 15 }[input.exEe] ?? null;
+      const tr = { under28: 2.5, between: 3, at32: 3.2, over32: 3.3 }[input.exTr] ?? null;
+      return assessExercise({
+        averageEe,
+        septalEe: input.exSeptal ? 15 : null,
+        tr,
+      });
+    },
     fields: [
-      { type: "number", name: "averageEe", label: "Exercise average E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "septalEe", label: "Exercise septal E/e'", unit: "", step: "0.1" },
-      { type: "number", name: "tr", label: "Exercise peak TR velocity", unit: "m/s", step: "0.01" },
+      {
+        type: "radios",
+        name: "exEe",
+        label: "Exercise average E/e'",
+        options: [
+          ["under10", "Average E/e' < 10"],
+          ["tenTo14", "Average E/e' 10 to 14, not including 14"],
+          ["exactly14", "Average E/e' = 14"],
+          ["over14", "Average E/e' > 14"],
+        ],
+      },
+      { type: "check", name: "exSeptal", label: "Septal E/e' ≥ 15" },
+      {
+        type: "radios",
+        name: "exTr",
+        label: "Exercise TR velocity",
+        options: [
+          ["under28", "TR velocity < 2.8 m/s"],
+          ["between", "TR velocity > 2.8 and < 3.2 m/s"],
+          ["at32", "TR velocity = 3.2 m/s"],
+          ["over32", "TR velocity > 3.2 m/s"],
+        ],
+      },
     ],
   },
   {
@@ -230,10 +386,32 @@ const SCENARIOS = [
     id: "teer",
     label: "After TEER or another interatrial shunt",
     source: "Section 15.A. LAP (mm Hg) = 4V² + RAP. Velocity > 1.7 m/s usually means LAP is elevated, except in biventricular heart failure.",
-    evaluate: assessTeer,
+    evaluate(input) {
+      const rap = { r3: 3, r5: 5, r10: 10, r15: 15 }[input.teerRap] ?? null;
+      const velocity = input.teerV === "high" ? 1.8 : input.teerV === "low" ? 1.2 : null;
+      return assessTeer({ velocity, rap, biventricularHf: input.biventricularHf === true });
+    },
     fields: [
-      { type: "number", name: "velocity", label: "Peak transseptal velocity", unit: "m/s", step: "0.01" },
-      { type: "number", name: "rap", label: "RAP", unit: "mm Hg", step: "1" },
+      {
+        type: "radios",
+        name: "teerV",
+        label: "Peak transseptal velocity",
+        options: [
+          ["low", "Velocity ≤ 1.7 m/s"],
+          ["high", "Velocity > 1.7 m/s"],
+        ],
+      },
+      {
+        type: "radios",
+        name: "teerRap",
+        label: "RAP",
+        options: [
+          ["r3", "3 mm Hg"],
+          ["r5", "5 mm Hg"],
+          ["r10", "10 mm Hg"],
+          ["r15", "15 mm Hg"],
+        ],
+      },
       { type: "check", name: "biventricularHf", label: "Biventricular heart failure (velocity is not reliable)" },
     ],
   },
@@ -241,13 +419,25 @@ const SCENARIOS = [
     id: "conduction",
     label: "AV block, bundle branch block, or ventricular pacing",
     source: "Section 15.D. E/e' is less accurate with LBBB, RV pacing, and CRT. If mitral inflow is only an A wave, TR velocity > 2.8 m/s is the stated indicator.",
-    evaluate: assessConductionTr,
+    evaluate(input) {
+      const tr = input.condTr === "high" ? 2.81 : input.condTr === "low" ? 2.8 : null;
+      return assessConductionTr({ tr });
+    },
     fields: [
       {
         type: "note",
         html: "Fusion of E and A from a long PR interval can imitate impaired relaxation. The variables remain usable when E and A are not fused. This entry applies when only a mitral A wave is present.",
       },
-      { type: "number", name: "tr", label: "Peak TR velocity", unit: "m/s", step: "0.01" },
+      {
+        type: "radios",
+        name: "condTr",
+        label: "TR velocity",
+        options: [
+          ["high", "TR velocity > 2.8 m/s"],
+          ["low", "TR velocity ≤ 2.8 m/s"],
+          ["missing", "TR was not measured"],
+        ],
+      },
     ],
   },
   infoScenario("hcm", "Hypertrophic cardiomyopathy", "Table 7. These are indicators, not a count that equals elevated LAP.", TABLE7.hcm),
@@ -334,10 +524,30 @@ function render() {
     .map(renderField)
     .join("")}</form>`;
   const form = document.querySelector("#calc-form");
-  const update = () => show(scenario.evaluate(readForm(form)));
+  const update = () => {
+    applyVisibility(form);
+    show(scenario.evaluate(readForm(form)));
+  };
   form.addEventListener("input", update);
   form.addEventListener("change", update);
   update();
+}
+
+function showAttr(field) {
+  return field.show ? ` data-show="${field.show}"` : "";
+}
+
+function applyVisibility(form) {
+  const data = readForm(form);
+  const afibCore = ["afibE", "afibEe", "afibTr", "afibDt"].filter((key) => data[key]).length;
+  for (const el of form.querySelectorAll("[data-show]")) {
+    const visible = el.dataset.show.split(";").every((part) => {
+      const [key, expected] = part.split(":");
+      const actual = key === "afibCore" ? String(afibCore) : String(data[key] ?? "");
+      return expected.split("|").includes(actual);
+    });
+    el.classList.toggle("hidden", !visible);
+  }
 }
 
 function wide(extra = "") {
@@ -351,10 +561,19 @@ function renderField(field) {
   }
   if (field.type === "details-end") return `</div></details>`;
   if (field.type === "heading") {
-    return `<h2 class="${wide("text-lg font-semibold border-b pb-1 pt-2")}">${escapeHtml(field.text)}</h2>`;
+    return `<h2${showAttr(field)} class="${wide("text-lg font-semibold border-b pb-1 pt-2")}">${escapeHtml(field.text)}</h2>`;
   }
   if (field.type === "note") {
-    return `<div class="${wide("bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-3 text-sm")}">${field.html}</div>`;
+    return `<div${showAttr(field)} class="${wide("bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-3 text-sm")}">${field.html}</div>`;
+  }
+  if (field.type === "radios") {
+    const options = field.options
+      .map(
+        ([value, label, checked]) =>
+          `<label class="flex items-start gap-3 min-h-11 py-1 text-sm"><input data-name="${field.name}" type="radio" name="${field.name}" value="${escapeHtml(value)}" class="mt-1 h-5 w-5 shrink-0"${checked ? " checked" : ""}><span>${escapeHtml(label)}</span></label>`,
+      )
+      .join("");
+    return `<fieldset${showAttr(field)} class="${wide("rounded-lg border border-gray-200 p-3")}"><legend class="px-1 text-sm font-semibold">${escapeHtml(field.label)}</legend><div class="mt-1 space-y-1">${options}</div></fieldset>`;
   }
   if (field.type === "list") {
     return `<div class="${wide("bg-gray-50 border rounded-lg p-4")}"><h3 class="font-semibold mb-2">${escapeHtml(field.title)}</h3><ul class="list-disc pl-5 text-sm space-y-2">${field.items
@@ -362,7 +581,7 @@ function renderField(field) {
       .join("")}</ul></div>`;
   }
   if (field.type === "check") {
-    return `<label class="${wide("flex items-start gap-3 text-sm min-h-11 py-1")}"><input data-name="${field.name}" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0"><span>${escapeHtml(field.label)}</span></label>`;
+    return `<label${showAttr(field)} class="${wide("flex items-start gap-3 text-sm min-h-11 py-1")}"><input data-name="${field.name}" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0"><span class="font-medium">${escapeHtml(field.label)}</span></label>`;
   }
   if (field.type === "select") {
     const options = field.options
@@ -379,7 +598,9 @@ function readForm(form) {
   for (const element of form.querySelectorAll("[data-name]")) {
     const name = element.dataset.name;
     if (element.type === "checkbox") data[name] = element.checked;
-    else if (element.type === "number") data[name] = element.value === "" ? null : Number(element.value);
+    else if (element.type === "radio") {
+      if (element.checked) data[name] = element.value;
+    } else if (element.type === "number") data[name] = element.value === "" ? null : Number(element.value);
     else data[name] = element.value === "" ? null : element.value;
   }
   return data;
