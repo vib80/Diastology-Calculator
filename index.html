@@ -2,29 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Diastology Calculator</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
+    <style>
     body { font-family: Inter, sans-serif; }
-    .disclaimer-bar {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 40;
-    }
+    input, select, button { font-size: 16px; }
+    #result { scroll-margin-top: 5rem; }
+    summary::before { content: "▸ "; }
+    details[open] > summary::before { content: "▾ "; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 pb-44">
-  <div class="w-full max-w-4xl mx-auto px-4 py-8">
-    <header class="text-center mb-8">
-      <h1 class="text-3xl md:text-4xl font-bold">Diastology Calculator</h1>
-      <p class="text-gray-600 mt-2">LV diastolic function and LAP estimation</p>
-      <p class="text-sm text-gray-500 mt-3 max-w-3xl mx-auto">
+<body class="bg-gray-100 text-gray-800">
+  <div class="w-full max-w-4xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
+    <header class="text-center mb-4 sm:mb-8">
+      <h1 class="text-2xl sm:text-4xl font-bold">Diastology Calculator</h1>
+      <p class="text-gray-600 mt-1 text-sm sm:text-base">LV diastolic function and LAP estimation</p>
+      <p class="text-xs sm:text-sm text-gray-500 mt-2 max-w-3xl mx-auto">
         Based on Nagueh et al., J Am Soc Echocardiogr. 2025;38:537-569.
         <a class="text-indigo-700 underline" href="https://doi.org/10.1016/j.echo.2025.03.011">doi:10.1016/j.echo.2025.03.011</a>
         ·
@@ -32,23 +29,24 @@
       </p>
     </header>
 
-    <main class="bg-white rounded-xl shadow-lg p-6 md:p-8">
-      <label for="scenario" class="block text-lg font-medium mb-2">Clinical scenario</label>
-      <select id="scenario" class="w-full rounded-md border-gray-300 bg-gray-50 p-3 text-base"></select>
+    <main class="bg-white rounded-xl shadow-lg p-4 sm:p-8">
+      <label for="scenario" class="block text-base font-medium mb-2">Clinical scenario</label>
+      <select id="scenario" class="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 min-h-12 text-base"></select>
       <p id="scenario-source" class="text-sm text-gray-500 mt-2"></p>
-      <div id="form-root" class="mt-6"></div>
-      <div class="mt-6">
-        <button id="reset" type="button" class="bg-gray-200 text-gray-800 font-semibold py-2 px-5 rounded-lg">Reset</button>
+      <div id="live-grade" class="sticky top-0 z-30 mt-4"></div>
+      <div id="form-root" class="mt-4"></div>
+      <div class="mt-4">
+        <button id="reset" type="button" class="w-full sm:w-auto min-h-12 bg-gray-200 text-gray-800 font-semibold px-5 rounded-lg">Reset</button>
       </div>
-      <div id="result" class="mt-8" aria-live="polite"></div>
+      <div id="result" class="mt-6" aria-live="polite"></div>
     </main>
-  </div>
 
-  <footer id="disclaimer" class="disclaimer-bar bg-white border-t border-gray-300 px-4 py-3 shadow-lg">
-    <p class="max-w-4xl mx-auto text-xs md:text-sm text-gray-700 leading-relaxed">
-      <span class="font-semibold">Disclaimer. </span>This tool is for educational and decision-support purposes only. It is not a substitute for independent clinical judgment. Results must be verified by a qualified clinician against the full echocardiographic study and current guidelines. The tool is provided “as is,” without warranties of any kind, express or implied, including warranties of accuracy, completeness, merchantability, or fitness for a particular purpose. The author assumes no liability for clinical decisions or outcomes arising from its use.
-    </p>
-  </footer>
+    <footer id="disclaimer" class="mt-4 mb-2 rounded-xl bg-white border border-gray-200 px-4 py-4 shadow-sm" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+      <p class="text-sm text-gray-700 leading-relaxed">
+        <span class="font-semibold">Disclaimer. </span>This tool is for educational and decision-support purposes only. It is not a substitute for independent clinical judgment. Results must be verified by a qualified clinician against the full echocardiographic study and current guidelines. The tool is provided “as is,” without warranties of any kind, express or implied, including warranties of accuracy, completeness, merchantability, or fitness for a particular purpose. The author assumes no liability for clinical decisions or outcomes arising from its use.
+      </p>
+    </footer>
+  </div>
   <script type="module" src="./src/ui.js"></script>
 </body>
 </html>

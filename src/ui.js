@@ -51,7 +51,11 @@ const SCENARIOS = [
       { type: "check", name: "symptomatic", label: "Symptomatic (dyspnea or suspected heart failure)" },
       { type: "check", name: "ageSpecific", label: "Use age-specific e' limits (Table 6) and the Table 5 E/A floor" },
       { type: "number", name: "age", label: "Age", unit: "years", step: "1" },
-      { type: "heading", text: "Second-stage parameters" },
+      {
+        type: "details-start",
+        summary: "Second-stage parameters",
+        hint: "Open when the core variables disagree",
+      },
       {
         type: "note",
         html: "Used when the three core variables disagree, and when e' is the only abnormality but E/A is above the low cutoff. LARS ≤ 18%, pulmonary vein S/D ≤ 0.67, LAVi > 34 mL/m², or IVRT ≤ 70 ms.",
@@ -64,7 +68,12 @@ const SCENARIOS = [
       { type: "number", name: "gls", label: "LV GLS (enter 18 or −18)", unit: "%", step: "0.1" },
       { type: "check", name: "significantMr", label: "Significant mitral regurgitation (LARS will not be used)" },
       { type: "check", name: "laStunning", label: "Suspected LA stunning (LARS will not be used)" },
-      { type: "heading", text: "Supplemental methods" },
+      { type: "details-end" },
+      {
+        type: "details-start",
+        summary: "Supplemental methods",
+        hint: "Only if LARS, pulmonary vein flow, LAVi, and IVRT are missing",
+      },
       {
         type: "note",
         html: "Figure 3 uses these only when LARS, pulmonary vein flow, LAVi, and IVRT are unavailable or unreliable. Positive cutoffs: PR end-diastolic velocity ≥ 2 m/s, PA diastolic pressure ≥ 16 mm Hg, L-wave ≥ 50 cm/s, Ar−A > 30 ms, Valsalva E/A decrease ≥ 50%.",
@@ -74,7 +83,12 @@ const SCENARIOS = [
       { type: "number", name: "lWave", label: "Mitral L-wave velocity", unit: "cm/s", step: "1" },
       { type: "number", name: "arMinusA", label: "Ar−A duration", unit: "ms", step: "1" },
       { type: "number", name: "valsalvaEaDecreasePct", label: "Valsalva decrease in E/A", unit: "%", step: "1" },
-      { type: "heading", text: "Figure 2, optional structural marker" },
+      { type: "details-end" },
+      {
+        type: "details-start",
+        summary: "Figure 2 structural marker",
+        hint: "Optional LV mass",
+      },
       {
         type: "select",
         name: "sex",
@@ -86,6 +100,7 @@ const SCENARIOS = [
         ],
       },
       { type: "number", name: "lvMassIndex", label: "LV mass index", unit: "g/m²", step: "1" },
+      { type: "details-end" },
     ],
   },
   {
@@ -315,7 +330,7 @@ document.querySelector("#reset").addEventListener("click", () => {
 function render() {
   const scenario = SCENARIOS.find((item) => item.id === scenarioSelect.value);
   sourceLine.textContent = scenario.source;
-  formRoot.innerHTML = `<form id="calc-form" class="space-y-4">${scenario.fields
+  formRoot.innerHTML = `<form id="calc-form" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">${scenario.fields
     .map(renderField)
     .join("")}</form>`;
   const form = document.querySelector("#calc-form");
@@ -325,29 +340,38 @@ function render() {
   update();
 }
 
+function wide(extra = "") {
+  return `sm:col-span-2 ${extra}`.trim();
+}
+
 function renderField(field) {
+  if (field.type === "details-start") {
+    const hint = field.hint ? `<span class="block text-sm font-normal text-gray-500">${escapeHtml(field.hint)}</span>` : "";
+    return `<details class="${wide("rounded-lg border border-gray-200 bg-gray-50 px-3")}"><summary class="cursor-pointer list-none py-3 font-semibold text-base [&::-webkit-details-marker]:hidden">${escapeHtml(field.summary)}${hint}</summary><div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-3">`;
+  }
+  if (field.type === "details-end") return `</div></details>`;
   if (field.type === "heading") {
-    return `<h2 class="text-lg font-semibold border-b pb-1 pt-2">${escapeHtml(field.text)}</h2>`;
+    return `<h2 class="${wide("text-lg font-semibold border-b pb-1 pt-2")}">${escapeHtml(field.text)}</h2>`;
   }
   if (field.type === "note") {
-    return `<div class="bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-3 text-sm">${field.html}</div>`;
+    return `<div class="${wide("bg-amber-50 border-l-4 border-amber-500 text-amber-900 p-3 text-sm")}">${field.html}</div>`;
   }
   if (field.type === "list") {
-    return `<div class="bg-gray-50 border rounded-lg p-4"><h3 class="font-semibold mb-2">${escapeHtml(field.title)}</h3><ul class="list-disc pl-5 text-sm space-y-1">${field.items
+    return `<div class="${wide("bg-gray-50 border rounded-lg p-4")}"><h3 class="font-semibold mb-2">${escapeHtml(field.title)}</h3><ul class="list-disc pl-5 text-sm space-y-2">${field.items
       .map((item) => `<li>${escapeHtml(item)}</li>`)
       .join("")}</ul></div>`;
   }
   if (field.type === "check") {
-    return `<label class="flex items-start gap-3 text-sm"><input data-name="${field.name}" type="checkbox" class="mt-1 h-4 w-4"><span>${escapeHtml(field.label)}</span></label>`;
+    return `<label class="${wide("flex items-start gap-3 text-sm min-h-11 py-1")}"><input data-name="${field.name}" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0"><span>${escapeHtml(field.label)}</span></label>`;
   }
   if (field.type === "select") {
     const options = field.options
       .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
       .join("");
-    return `<label class="block text-sm font-medium">${escapeHtml(field.label)}<select data-name="${field.name}" class="mt-1 w-full rounded-md border-gray-300 bg-gray-50 p-2">${options}</select></label>`;
+    return `<label class="${wide("block text-sm font-medium")}">${escapeHtml(field.label)}<select data-name="${field.name}" class="mt-1 w-full min-h-12 rounded-lg border border-gray-300 bg-white px-3 text-base">${options}</select></label>`;
   }
   const unit = field.unit ? ` (${escapeHtml(field.unit)})` : "";
-  return `<label class="block text-sm font-medium">${escapeHtml(field.label)}${unit}<input data-name="${field.name}" type="number" step="${field.step}" class="mt-1 w-full rounded-md border-gray-300 bg-gray-50 p-2"></label>`;
+  return `<label class="block text-sm font-medium">${escapeHtml(field.label)}${unit}<input data-name="${field.name}" type="number" inputmode="decimal" step="${field.step}" autocomplete="off" class="mt-1 w-full min-h-12 rounded-lg border border-gray-300 bg-white px-3 text-base"></label>`;
 }
 
 function readForm(form) {
@@ -376,7 +400,16 @@ function show(report) {
     report.extra?.lapValue != null
       ? `<p class="mt-2 text-sm">Calculated LAP ${escapeHtml(String(report.extra.lapValue))} mm Hg</p>`
       : "";
-  resultRoot.innerHTML = `<section class="rounded-lg p-5 ${tone.box}">
+  const chip = document.querySelector("#live-grade");
+  chip.className = `sticky top-0 z-30 mt-4 rounded-lg px-4 py-3 shadow-md ${tone.box}`;
+  chip.innerHTML = `<button type="button" class="w-full text-left" id="jump-result">
+    <span class="block text-lg font-bold ${tone.title}">${escapeHtml(report.grade)}</span>
+    <span class="block text-sm">${report.lap ? `LAP: ${escapeHtml(report.lap)}` : "Tap to read the full result"}</span>
+  </button>`;
+  chip.querySelector("#jump-result").addEventListener("click", () => {
+    resultRoot.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  resultRoot.innerHTML = `<section class="rounded-lg p-4 sm:p-5 ${tone.box}">
     <h2 class="text-2xl font-bold ${tone.title}">${escapeHtml(report.grade)}</h2>
     ${lap}
     <p class="text-sm mt-3">${escapeHtml(report.reason)}</p>
@@ -384,7 +417,7 @@ function show(report) {
     ${pressure}
     ${note}
     <p class="text-xs mt-4 text-gray-500">Source: ${escapeHtml(report.figure || "")}</p>
-    <p class="text-xs mt-3 text-gray-600">${escapeHtml(DISCLAIMER)}</p>
+    <p class="text-sm mt-3 text-gray-700 leading-relaxed">${escapeHtml(DISCLAIMER)}</p>
   </section>`;
 }
 
