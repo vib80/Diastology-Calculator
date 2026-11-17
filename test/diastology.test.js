@@ -9,7 +9,6 @@ import {
   assessAfib,
   assessConductionTr,
   assessDiastolicDysfunction,
-  assessExercise,
   assessHtx,
   assessMac,
   assessPh,
@@ -631,25 +630,6 @@ test("Figure 5 heart transplant branches and boundaries", () => {
   assert.equal(assessHtx({ septalEe: 8, lateralEe: 12, tr: 2.8 }).grade, "Normal LAP");
   assert.equal(assessHtx({ averageEe: 10, tr: 2.81 }).grade, "Elevated LAP");
   assert.equal(assessHtx({ averageEe: 10 }).indeterminate, true);
-});
-
-test("Section 13 exercise categories and boundaries", () => {
-  assert.equal(assessExercise({}).indeterminate, true);
-  assert.equal(assessExercise({ averageEe: 14, tr: 3.21 }).grade, "Positive");
-  const exact = assessExercise({ averageEe: 14, tr: 3.2 });
-  assert.equal(exact.grade, "Positive");
-  assert.match(exact.note, /Key Point/);
-  assert.equal(
-    assessExercise({ averageEe: 13.9, septalEe: 15, tr: 3.2 }).grade,
-    "Positive",
-  );
-  assert.equal(assessExercise({ averageEe: 9.99, tr: 2.79 }).grade, "Normal exercise LAP");
-  assert.equal(assessExercise({ averageEe: 10, tr: 2.7 }).indeterminate, true);
-  assert.equal(assessExercise({ averageEe: 9, tr: 2.8 }).indeterminate, true);
-  assert.equal(assessExercise({ averageEe: 13.9, tr: 3.21 }).grade, "Exercise E/e' not elevated");
-  assert.equal(assessExercise({ averageEe: 14.01, tr: 3.0 }).grade, "Borderline exercise LAP");
-  assert.equal(assessExercise({ averageEe: 14, tr: 3.0 }).indeterminate, true);
-  assert.equal(assessExercise({ averageEe: 14.5, tr: 2.8 }).indeterminate, true);
 });
 
 test("TEER LAP estimate and conduction-only TR indicator", () => {

@@ -1118,67 +1118,6 @@ export function assessHtx(input = {}) {
   });
 }
 
-/**
- * Section 13.C, with the Section 13 key point used where the TR boundary differs.
- * Positive: (average E/e' ≥ 14 or septal E/e' ≥ 15) and TR velocity ≥ 3.2 m/s.
- * The detailed paragraph prints TR > 3.2; Key Point 3 prints TR ≥ 3.2.
- */
-export function assessExercise(input = {}) {
-  const avg = num(input.averageEe);
-  const septal = num(input.septalEe);
-  const tr = num(input.tr);
-  if (avg === null && septal === null && tr === null) {
-    return indeterminate(
-      "No exercise measurements entered.",
-      "Section 13.C",
-    );
-  }
-  const definiteEe = (avg !== null && avg >= 14) || (septal !== null && septal >= 15);
-  if (definiteEe && tr !== null && tr >= 3.2) {
-    return result({
-      grade: "Positive",
-      lap: "Increased with exercise",
-      reason:
-        "Average E/e' is ≥ 14 or septal E/e' is ≥ 15, and TR velocity is ≥ 3.2 m/s.",
-      note:
-        tr === 3.2
-          ? "Key Point 3 counts TR velocity ≥ 3.2 m/s. The detailed Section 13.C paragraph says TR velocity > 3.2 m/s. Exactly 3.2 m/s is reported as positive to match the key point."
-          : null,
-      figure: "Section 13",
-    });
-  }
-  const normalEe = avg !== null ? avg < 10 : septal !== null ? septal < 10 : null;
-  if (normalEe === true && tr !== null && tr < 2.8) {
-    return result({
-      grade: "Normal exercise LAP",
-      lap: "Normal",
-      reason: "Average (or, if average is missing, septal) E/e' is < 10 and TR velocity is < 2.8 m/s.",
-      figure: "Section 13.C",
-    });
-  }
-  if (avg !== null && avg < 14 && tr !== null && tr > 3.2) {
-    return result({
-      grade: "Exercise E/e' not elevated",
-      lap: "Not increased by the exercise rule",
-      reason:
-        "Average E/e' is < 14. That exercise pattern is not the elevated filling-pressure pattern, even when TR velocity is > 3.2 m/s.",
-      figure: "Section 13.C",
-    });
-  }
-  if (avg !== null && avg > 14 && tr !== null && tr > 2.8 && tr < 3.2) {
-    return result({
-      grade: "Borderline exercise LAP",
-      lap: "Borderline increase",
-      reason: "Average E/e' is > 14 and TR velocity is > 2.8 but < 3.2 m/s.",
-      figure: "Section 13.C",
-    });
-  }
-  return indeterminate(
-    "The exercise measurements do not meet a named Section 13.C category (positive, normal exercise LAP, E/e' below the elevated threshold, or borderline filling pressure). Values that fall between those branches stay indeterminate.",
-    "Section 13.C",
-  );
-}
-
 export function assessTeer(input = {}) {
   const velocity = num(input.velocity);
   const rap = num(input.rap);

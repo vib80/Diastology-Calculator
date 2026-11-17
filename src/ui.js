@@ -5,7 +5,6 @@ import {
   TABLE7,
   assessAfib,
   assessConductionTr,
-  assessExercise,
   assessHtx,
   assessMac,
   assessPh,
@@ -300,45 +299,6 @@ const SCENARIOS = [
     ],
   },
   {
-    id: "exercise",
-    label: "Diastolic exercise echocardiography",
-    source: "Section 13. Interpretation of exercise average E/e', septal E/e', and peak TR velocity.",
-    evaluate(input) {
-      const averageEe = { under10: 9, tenTo14: 12, exactly14: 14, over14: 15 }[input.exEe] ?? null;
-      const tr = { under28: 2.5, between: 3, at32: 3.2, over32: 3.3 }[input.exTr] ?? null;
-      return assessExercise({
-        averageEe,
-        septalEe: input.exSeptal ? 15 : null,
-        tr,
-      });
-    },
-    fields: [
-      {
-        type: "radios",
-        name: "exEe",
-        label: "Exercise average E/e'",
-        options: [
-          ["under10", "Average E/e' < 10"],
-          ["tenTo14", "Average E/e' 10 to 14, not including 14"],
-          ["exactly14", "Average E/e' = 14"],
-          ["over14", "Average E/e' > 14"],
-        ],
-      },
-      { type: "check", name: "exSeptal", label: "Septal E/e' ≥ 15" },
-      {
-        type: "radios",
-        name: "exTr",
-        label: "Exercise TR velocity",
-        options: [
-          ["under28", "TR velocity < 2.8 m/s"],
-          ["between", "TR velocity > 2.8 and < 3.2 m/s"],
-          ["at32", "TR velocity = 3.2 m/s"],
-          ["over32", "TR velocity > 3.2 m/s"],
-        ],
-      },
-    ],
-  },
-  {
     id: "teer",
     label: "After TEER or another interatrial shunt",
     source: "Section 15.A. LAP (mm Hg) = 4V² + RAP. Velocity > 1.7 m/s usually means LAP is elevated, except in biventricular heart failure.",
@@ -600,11 +560,11 @@ function show(report) {
 
 function toneFor(report) {
   const grade = report.grade;
-  if (report.indeterminate || grade === "Indeterminate" || grade === "Indeterminate grade" || grade === "Inconclusive" || grade === "Exercise testing needed") {
+  if (report.indeterminate || grade === "Indeterminate" || grade === "Indeterminate grade" || grade === "Inconclusive") {
     return { box: "bg-gray-100", title: "text-gray-800" };
   }
   if (grade === "Grade 3" || grade === "Positive") return { box: "bg-red-100", title: "text-red-900" };
-  if (grade === "Grade 2" || grade === "Elevated LAP" || grade === "Borderline exercise LAP") {
+  if (grade === "Grade 2" || grade === "Elevated LAP") {
     return { box: "bg-amber-100", title: "text-amber-950" };
   }
   if (grade === "Grade 1") return { box: "bg-sky-100", title: "text-sky-950" };
