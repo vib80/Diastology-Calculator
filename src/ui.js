@@ -1,5 +1,4 @@
 import {
-  DISCLAIMER,
   TABLE7,
   assessAfib,
   assessHtx,
@@ -431,7 +430,6 @@ function show(report) {
     ${pressure}
     ${note}
     <p class="text-xs mt-4 text-gray-500">Source: ${escapeHtml(report.figure || "")}</p>
-    <p class="text-sm mt-3 text-gray-700 leading-relaxed">${escapeHtml(DISCLAIMER)}</p>
   </section>`;
 }
 
