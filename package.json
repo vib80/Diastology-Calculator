@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check src/diastology.js && node --check src/ui.js && node --test"
+    "test": "node --check src/diastology.js && node --check src/grade.js && node --check src/ui.js && node --test"
   }
 }
