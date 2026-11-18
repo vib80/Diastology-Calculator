@@ -15,6 +15,25 @@
     summary::before { content: "▸ "; }
     details[open] > summary::before { content: "▾ "; }
     .hidden { display: none !important; }
+    .finding { display: flex; flex-direction: column; gap: 0.35rem; }
+    .finding-label { font-size: 0.875rem; font-weight: 600; line-height: 1.35; }
+    .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #d1d5db; border-radius: 0.5rem; overflow: hidden; background: #f9fafb; }
+    .seg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .seg-opt { position: relative; display: block; min-width: 0; }
+    .seg-opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+    .seg-opt span { display: flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: 0.3rem 0.35rem; font-size: 0.8125rem; font-weight: 600; line-height: 1.2; text-align: center; color: #4b5563; box-shadow: inset -1px 0 0 #e5e7eb, inset 0 -1px 0 #e5e7eb; }
+    .seg-opt:hover span { background: #f3f4f6; }
+    .seg-opt input:checked + .opt-present { background: #fde68a; color: #78350f; }
+    .seg-opt input:checked + .opt-absent { background: #a7f3d0; color: #064e3b; }
+    .seg-opt input:checked + .opt-unknown { background: #e5e7eb; color: #111827; }
+    .seg-opt input:checked + .opt-choice { background: #e0e7ff; color: #312e81; }
+    .seg-opt input:focus-visible + span { outline: 2px solid #4338ca; outline-offset: -2px; }
+    @media (min-width: 640px) {
+      .finding { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; }
+      .finding-label { flex: 1 1 auto; min-width: 0; }
+      .seg { flex: 0 0 22rem; }
+      .seg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); flex-basis: 32rem; }
+    }
   </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
